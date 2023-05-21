@@ -20,8 +20,3 @@ import nyab.conf.QMyPath
 // CallChain[size=18] = path <-[Call]- QMyPath.src_root <-[Call]- qLogStackFrames() <-[Call]- QExcep ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal val String.path: Path
     get() = Paths.get(this.trim()).toAbsolutePath().normalize()
-
-// CallChain[size=2] = StringBuilder.plusAssign() <-[Call]- QBenchmarkTest.stringConcatenation()[Root]
-internal operator fun StringBuilder.plusAssign(str: String) {
-    this.append(str)
-}

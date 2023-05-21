@@ -50,7 +50,7 @@ class QBenchmarkTest {
             block("StringBuilder") {
                 val sb = StringBuilder()
                 for (i in 1..3000) {
-                    sb += i.toString()
+                    sb.append(i.toString())
                 }
                 sb.toString()
             }

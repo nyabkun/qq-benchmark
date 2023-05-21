@@ -388,7 +388,6 @@ MatchResult.qResolveReplacementGroup() [KtNamedFunction] <Top Level> :   1
                    QConsole.print() [KtNamedFunction] <Second Level> :   1
                     QBenchmark.start() [KtNamedFunction] <Top Level> :   1
                                     QBenchmark [KtClass] <Top Level> :   1
-QBenchmarkTest.stringConcatenation() [KtNamedFunction] <Second Level> :   1
                                      QMMethodA [KtClass] <Top Level> :   1
                    QMatchMethodAny [KtObjectDeclaration] <Top Level> :   1
                QMatchNot.toString() [KtNamedFunction] <Second Level> :   1

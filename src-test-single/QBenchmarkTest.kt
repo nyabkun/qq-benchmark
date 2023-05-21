@@ -104,7 +104,7 @@ class QBenchmarkTest {
             block("StringBuilder") {
                 val sb = StringBuilder()
                 for (i in 1..3000) {
-                    sb += i.toString()
+                    sb.append(i.toString())
                 }
                 sb.toString()
             }
@@ -3066,11 +3066,6 @@ private val String?.light_blue: String
 // CallChain[size=21] = light_cyan <-[Call]- qARROW <-[Call]- qArrow() <-[Call]- QLogStyle.qLogArrow ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 private val String?.light_cyan: String
     get() = this?.qColor(QShColor.LIGHT_CYAN) ?: "null".qColor(QShColor.LIGHT_CYAN)
-
-// CallChain[size=2] = StringBuilder.plusAssign() <-[Call]- QBenchmarkTest.stringConcatenation()[Root]
-private operator fun StringBuilder.plusAssign(str: String) {
-    this.append(str)
-}
 
 // CallChain[size=18] = path <-[Call]- QMyPath.src_root <-[Call]- qLogStackFrames() <-[Call]- QExcep ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 private val String.path: Path
