@@ -17,7 +17,7 @@
 
 ### code
 
-Full Source  [QBenchmarkExample.kt](src-example/QBenchmarkExample.kt)})
+Full Source  [QBenchmarkExample.kt](src-example/QBenchmarkExample.kt)
 
 ```kotlin
 fun main() {
