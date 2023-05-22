@@ -15,10 +15,8 @@ import org.intellij.lang.annotations.Language
 // qq-benchmark is a self-contained single-file library created by nyabkun.
 // This is a split-file version of the library, this file is not self-contained.
 
-// CallChain[size=10] = re <-[Call]- QSrcCut.CUT_UNTIL_qLog <-[Call]- QSrcCut.UNTIL_qLog <-[Call]- T ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-// https://youtrack.jetbrains.com/issue/KTIJ-5643
-internal val @receiver:Language("RegExp") String.re: Regex
-    get() = qRe(this)
+// CallChain[size=12] = RO <-[Ref]- qRe() <-[Call]- re <-[Call]- QSrcCut.CUT_UNTIL_qLog <-[Call]- QS ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal typealias RO = RegexOption
 
 // CallChain[size=11] = qRe() <-[Call]- re <-[Call]- QSrcCut.CUT_UNTIL_qLog <-[Call]- QSrcCut.UNTIL_ ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal fun qRe(@Language("RegExp") regex: String, vararg opts: RO): Regex {
@@ -27,8 +25,10 @@ internal fun qRe(@Language("RegExp") regex: String, vararg opts: RO): Regex {
     }
 }
 
-// CallChain[size=12] = RO <-[Ref]- qRe() <-[Call]- re <-[Call]- QSrcCut.CUT_UNTIL_qLog <-[Call]- QS ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal typealias RO = RegexOption
+// CallChain[size=10] = re <-[Call]- QSrcCut.CUT_UNTIL_qLog <-[Call]- QSrcCut.UNTIL_qLog <-[Call]- T ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+// https://youtrack.jetbrains.com/issue/KTIJ-5643
+internal val @receiver:Language("RegExp") String.re: Regex
+    get() = qRe(this)
 
 // CallChain[size=20] = String.qReplaceFirstIfNonEmptyStringGroup() <-[Call]- String.qApplyColorNest ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal fun String.qReplaceFirstIfNonEmptyStringGroup(@Language("RegExp") regex: String, nonEmptyGroupIdx: Int, replace: String = "$1", vararg opts: RO): String {

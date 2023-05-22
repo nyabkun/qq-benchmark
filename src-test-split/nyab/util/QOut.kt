@@ -38,6 +38,11 @@ interface QOut {
     }
 }
 
+// CallChain[size=4] = QOut.separator() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+internal fun QOut.separator(start: String = "\n", end: String = "\n") {
+    this.println(qSeparator(start = start, end = end))
+}
+
 // CallChain[size=3] = QConsole <-[Call]- QOut.CONSOLE <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 private class QConsole(override val isAcceptColoredText: Boolean) : QOut {
     // CallChain[size=4] = QConsole.print() <-[Propag]- QConsole <-[Call]- QOut.CONSOLE <-[Call]- QBenchmarkTest.cachedRegex()[Root]
@@ -58,9 +63,4 @@ private class QConsole(override val isAcceptColoredText: Boolean) : QOut {
     override fun close() {
         // Do nothing
     }
-}
-
-// CallChain[size=4] = QOut.separator() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-internal fun QOut.separator(start: String = "\n", end: String = "\n") {
-    this.println(qSeparator(start = start, end = end))
 }

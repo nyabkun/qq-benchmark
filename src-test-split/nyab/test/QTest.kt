@@ -53,23 +53,44 @@ import nyab.util.yellow
 // qq-benchmark is a self-contained single-file library created by nyabkun.
 // This is a split-file version of the library, this file is not self-contained.
 
+// CallChain[size=4] = QTest <-[Ref]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FUNCTION)
+internal annotation class QTest(val testOnlyThis: Boolean = false)
+
 // CallChain[size=2] = QTestHumanCheckRequired <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION)
 internal annotation class QTestHumanCheckRequired
 
-// CallChain[size=2] = qTestHumanCheck() <-[Call]- main()[Root]
-internal fun qTestHumanCheck(vararg targetClasses: Class<*> = arrayOf(qThisFileMainClass)): QTestResult {
-    return qTest(
-        targetClasses = targetClasses,
-        targetMethodFilter =
-        QMMethod.annotation(QTestHumanCheckRequired::class) and
-//                QMMethod.notAnnotation(QIgnore::class) and
-            QMMethod.DeclaredOnly and
-            QMMethod.NoParams and
-            QMMethod.nameNotExact("main")
-    )
+// CallChain[size=4] = QBeforeEach <-[Ref]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FUNCTION)
+internal annotation class QBeforeEach
+
+// CallChain[size=4] = QAfterEach <-[Ref]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FUNCTION)
+internal annotation class QAfterEach
+
+// CallChain[size=6] = QTestResultElement <-[Ref]- QTestResult.QTestResult() <-[Call]- QTestResult.numFail <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+internal data class QTestResultElement(val method: Method, val cause: Throwable?) {
+    // CallChain[size=5] = QTestResultElement.success <-[Call]- QTestResult.numFail <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+    val success: Boolean
+        get() = cause == null
 }
+
+// CallChain[size=6] = allTestedMethods <-[Call]- QTestResult.printIt() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+internal val List<QTestResultElement>.allTestedMethods: String
+    get() =
+        "\n[${"Tested".light_blue}]\n" +
+            this.joinToString("\n") {
+                if (it.success) {
+                    it.method.qName().green
+                } else {
+                    it.method.qName().light_red
+                }
+            }
 
 // CallChain[size=3] = QTestResult <-[Ref]- qTestHumanCheck() <-[Call]- main()[Root]
 internal class QTestResult(val elements: List<QTestResultElement>, val time: Long) {
@@ -142,6 +163,71 @@ internal class QTestResult(val elements: List<QTestResultElement>, val time: Lon
             out.println(elements.allTestedMethods)
         }
     }
+}
+
+// CallChain[size=4] = qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+private fun qTestMethods(
+    methodsToTest: List<Method>,
+    beforeMethod: List<Method> = emptyList(),
+    afterMethod: List<Method> = emptyList(),
+    out: QOut = QOut.CONSOLE
+): QTestResult {
+    val results = mutableListOf<QTestResultElement>()
+
+    val timeItResult = qTimeIt(quiet = true) {
+        for (method in methodsToTest) {
+            // "⭐"
+            out.println(qSeparatorWithLabel("${QMyMark.TEST_METHOD} " + method.qName(true)))
+
+            method.qTrySetAccessible()
+
+            val cause =
+                if (method.qIsInstanceMethod()) {
+                    val testInstance = method.declaringClass.qNewInstance()
+
+                    try {
+                        for (before in beforeMethod) {
+                            before.invoke(testInstance)
+                        }
+
+                        method.invoke(testInstance)
+
+                        for (after in afterMethod) {
+                            after.invoke(testInstance)
+                        }
+                        null
+                    } catch (e: Throwable) {
+                        e
+                    }
+                } else {
+                    try {
+                        for (before in beforeMethod) {
+                            before.invoke(null)
+                        }
+
+                        method.invoke(null)
+
+                        for (after in afterMethod) {
+                            after.invoke(null)
+                        }
+                        null
+                    } catch (e: Throwable) {
+                        e
+                    }
+                }
+
+            results += if (cause?.cause != null && cause is InvocationTargetException) {
+                QTestResultElement(method, cause.cause)
+            } else {
+                QTestResultElement(method, cause)
+            }
+        }
+    }
+
+    val result = QTestResult(results, timeItResult.time)
+    result.printIt()
+
+    return result
 }
 
 // CallChain[size=3] = qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
@@ -235,101 +321,15 @@ internal fun qTest(
     }
 }
 
-// CallChain[size=4] = QTest <-[Ref]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-@Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.FUNCTION)
-internal annotation class QTest(val testOnlyThis: Boolean = false)
-
-// CallChain[size=4] = QBeforeEach <-[Ref]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-@Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.FUNCTION)
-internal annotation class QBeforeEach
-
-// CallChain[size=4] = QAfterEach <-[Ref]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-@Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.FUNCTION)
-internal annotation class QAfterEach
-
-// CallChain[size=4] = qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-private fun qTestMethods(
-    methodsToTest: List<Method>,
-    beforeMethod: List<Method> = emptyList(),
-    afterMethod: List<Method> = emptyList(),
-    out: QOut = QOut.CONSOLE
-): QTestResult {
-    val results = mutableListOf<QTestResultElement>()
-
-    val timeItResult = qTimeIt(quiet = true) {
-        for (method in methodsToTest) {
-            // "⭐"
-            out.println(qSeparatorWithLabel("${QMyMark.TEST_METHOD} " + method.qName(true)))
-
-            method.qTrySetAccessible()
-
-            val cause =
-                if (method.qIsInstanceMethod()) {
-                    val testInstance = method.declaringClass.qNewInstance()
-
-                    try {
-                        for (before in beforeMethod) {
-                            before.invoke(testInstance)
-                        }
-
-                        method.invoke(testInstance)
-
-                        for (after in afterMethod) {
-                            after.invoke(testInstance)
-                        }
-                        null
-                    } catch (e: Throwable) {
-                        e
-                    }
-                } else {
-                    try {
-                        for (before in beforeMethod) {
-                            before.invoke(null)
-                        }
-
-                        method.invoke(null)
-
-                        for (after in afterMethod) {
-                            after.invoke(null)
-                        }
-                        null
-                    } catch (e: Throwable) {
-                        e
-                    }
-                }
-
-            results += if (cause?.cause != null && cause is InvocationTargetException) {
-                QTestResultElement(method, cause.cause)
-            } else {
-                QTestResultElement(method, cause)
-            }
-        }
-    }
-
-    val result = QTestResult(results, timeItResult.time)
-    result.printIt()
-
-    return result
+// CallChain[size=2] = qTestHumanCheck() <-[Call]- main()[Root]
+internal fun qTestHumanCheck(vararg targetClasses: Class<*> = arrayOf(qThisFileMainClass)): QTestResult {
+    return qTest(
+        targetClasses = targetClasses,
+        targetMethodFilter =
+        QMMethod.annotation(QTestHumanCheckRequired::class) and
+//                QMMethod.notAnnotation(QIgnore::class) and
+            QMMethod.DeclaredOnly and
+            QMMethod.NoParams and
+            QMMethod.nameNotExact("main")
+    )
 }
-
-// CallChain[size=6] = QTestResultElement <-[Ref]- QTestResult.QTestResult() <-[Call]- QTestResult.numFail <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-internal data class QTestResultElement(val method: Method, val cause: Throwable?) {
-    // CallChain[size=5] = QTestResultElement.success <-[Call]- QTestResult.numFail <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-    val success: Boolean
-        get() = cause == null
-}
-
-// CallChain[size=6] = allTestedMethods <-[Call]- QTestResult.printIt() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-internal val List<QTestResultElement>.allTestedMethods: String
-    get() =
-        "\n[${"Tested".light_blue}]\n" +
-            this.joinToString("\n") {
-                if (it.success) {
-                    it.method.qName().green
-                } else {
-                    it.method.qName().light_red
-                }
-            }

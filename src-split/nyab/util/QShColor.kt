@@ -13,37 +13,95 @@ package nyab.util
 // qq-benchmark is a self-contained single-file library created by nyabkun.
 // This is a split-file version of the library, this file is not self-contained.
 
-// CallChain[size=2] = red <-[Call]- QBlock.toString()[Root]
-internal val String?.red: String
-    get() = this?.qColor(QShColor.RED) ?: "null".qColor(QShColor.RED)
+// CallChain[size=12] = qBG_JUMP <-[Call]- QShColor.bg <-[Call]- String.qColorLine() <-[Call]- Strin ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+private const val qBG_JUMP = 10
 
-// CallChain[size=2] = blue <-[Call]- QBlock.toString()[Root]
-internal val String?.blue: String
-    get() = this?.qColor(QShColor.BLUE) ?: "null".qColor(QShColor.BLUE)
+// CallChain[size=10] = qSTART <-[Call]- String.qColor() <-[Call]- String.qColorTarget() <-[Call]- Q ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+private const val qSTART = "\u001B["
 
-// CallChain[size=2] = yellow <-[Call]- QBlock.toString()[Root]
-internal val String?.yellow: String
-    get() = this?.qColor(QShColor.YELLOW) ?: "null".qColor(QShColor.YELLOW)
+// CallChain[size=11] = qEND <-[Call]- String.qColorLine() <-[Call]- String.qColor() <-[Call]- Strin ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+private const val qEND = "${qSTART}0m"
 
-// CallChain[size=2] = green <-[Call]- QBlock.toString()[Root]
-internal val String?.green: String
-    get() = this?.qColor(QShColor.GREEN) ?: "null".qColor(QShColor.GREEN)
-
-// CallChain[size=2] = dark_gray <-[Call]- QBlock.toString()[Root]
-internal val String?.dark_gray: String
-    get() = this?.qColor(QShColor.DARK_GRAY) ?: "null".qColor(QShColor.DARK_GRAY)
-
-// CallChain[size=5] = light_gray <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-internal val String?.light_gray: String
-    get() = this?.qColor(QShColor.LIGHT_GRAY) ?: "null".qColor(QShColor.LIGHT_GRAY)
-
-// CallChain[size=8] = String.qColorTarget() <-[Call]- QException.mySrcAndStack <-[Call]- QException ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-internal fun String.qColorTarget(ptn: Regex, color: QShColor = QShColor.LIGHT_YELLOW): String {
-    return ptn.replace(this, "$0".qColor(color))
+// CallChain[size=12] = qMASK_COLORED <-[Call]- String.qApplyColorNestable() <-[Call]- String.qColor ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+private val qMASK_COLORED by lazy {
+    QMaskBetween(
+        qSTART,
+        qEND,
+        qSTART,
+        escapeChar = '\\',
+        targetNestDepth = 1,
+        maskIncludeStartAndEndSequence = false
+    )
 }
 
+// CallChain[size=11] = String.qApplyColorNestable() <-[Call]- String.qColorLine() <-[Call]- String. ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+private fun String.qApplyColorNestable(colorStart: String): String {
+    val re = "(?s)(\\Q$qEND\\E)(.+?)(\\Q$qSTART\\E|$)".re
+    val replace = "$1$colorStart$2$qEND$3"
+    val re2 = "^(?s)(.*?)(\\Q$qSTART\\E)"
+    val replace2 = "$colorStart$1$qEND$2"
+
+    return this.qMaskAndReplace(
+        qMASK_COLORED,
+        re,
+        replace
+    ).qReplaceFirstIfNonEmptyStringGroup(re2, 1, replace2)
+}
+
+// CallChain[size=9] = String.qColor() <-[Call]- String.qColorTarget() <-[Call]- QException.mySrcAnd ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+internal fun String.qColor(fg: QShColor? = null, bg: QShColor? = null, nestable: Boolean = this.contains(qSTART)): String {
+    return if (this.qIsSingleLine()) {
+        this.qColorLine(fg, bg, nestable)
+    } else {
+        lineSequence().map { line ->
+            line.qColorLine(fg, bg, nestable)
+        }.joinToString("\n")
+    }
+}
+
+// CallChain[size=10] = String.qColorLine() <-[Call]- String.qColor() <-[Call]- String.qColorTarget( ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+private fun String.qColorLine(
+    fg: QShColor? = null,
+    bg: QShColor? = null,
+    nestable: Boolean = true,
+): String {
+    val nest = nestable && this.contains(qEND)
+
+    val fgApplied = if (fg != null) {
+        val fgStart = fg.fg
+
+        if (nest) {
+            this.qApplyColorNestable(fgStart)
+        } else {
+            "$fgStart$this$qEND"
+        }
+    } else {
+        this
+    }
+
+    val bgApplied = if (bg != null) {
+        val bgStart = bg.bg
+
+        if (nest) {
+            fgApplied.qApplyColorNestable(bgStart)
+        } else {
+            "$bgStart$fgApplied$qEND"
+        }
+    } else {
+        fgApplied
+    }
+
+    return bgApplied
+}
+
+// CallChain[size=14] = noColor <-[Call]- QConsole.print() <-[Propag]- QConsole <-[Call]- QOut.CONSO ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+internal val String.noColor: String
+    get() {
+        return this.replace("""\Q$qSTART\E\d{1,2}m""".re, "")
+    }
+
 // CallChain[size=8] = QShColor <-[Ref]- QException.mySrcAndStack <-[Call]- QException.printStackTra ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-enum class QShColor(val code: Int) {
+internal enum class QShColor(val code: Int) {
     // CallChain[size=9] = QShColor.BLACK <-[Propag]- QShColor.LIGHT_YELLOW <-[Call]- QException.mySrcAn ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     BLACK(30),
     // CallChain[size=9] = QShColor.RED <-[Propag]- QShColor.LIGHT_YELLOW <-[Call]- QException.mySrcAndS ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
@@ -91,96 +149,38 @@ enum class QShColor(val code: Int) {
     }
 }
 
-// CallChain[size=9] = String.qColor() <-[Call]- String.qColorTarget() <-[Call]- QException.mySrcAnd ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-internal fun String.qColor(fg: QShColor? = null, bg: QShColor? = null, nestable: Boolean = this.contains(qSTART)): String {
-    return if (this.qIsSingleLine()) {
-        this.qColorLine(fg, bg, nestable)
-    } else {
-        lineSequence().map { line ->
-            line.qColorLine(fg, bg, nestable)
-        }.joinToString("\n")
-    }
+// CallChain[size=8] = String.qColorTarget() <-[Call]- QException.mySrcAndStack <-[Call]- QException ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+internal fun String.qColorTarget(ptn: Regex, color: QShColor = QShColor.LIGHT_YELLOW): String {
+    return ptn.replace(this, "$0".qColor(color))
 }
 
-// CallChain[size=10] = qSTART <-[Call]- String.qColor() <-[Call]- String.qColorTarget() <-[Call]- Q ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-private const val qSTART = "\u001B["
+// CallChain[size=2] = red <-[Call]- QBlock.toString()[Root]
+internal val String?.red: String
+    get() = this?.qColor(QShColor.RED) ?: "null".qColor(QShColor.RED)
 
-// CallChain[size=10] = String.qColorLine() <-[Call]- String.qColor() <-[Call]- String.qColorTarget( ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-private fun String.qColorLine(
-    fg: QShColor? = null,
-    bg: QShColor? = null,
-    nestable: Boolean = true,
-): String {
-    val nest = nestable && this.contains(qEND)
+// CallChain[size=2] = green <-[Call]- QBlock.toString()[Root]
+internal val String?.green: String
+    get() = this?.qColor(QShColor.GREEN) ?: "null".qColor(QShColor.GREEN)
 
-    val fgApplied = if (fg != null) {
-        val fgStart = fg.fg
+// CallChain[size=2] = yellow <-[Call]- QBlock.toString()[Root]
+internal val String?.yellow: String
+    get() = this?.qColor(QShColor.YELLOW) ?: "null".qColor(QShColor.YELLOW)
 
-        if (nest) {
-            this.qApplyColorNestable(fgStart)
-        } else {
-            "$fgStart$this$qEND"
-        }
-    } else {
-        this
-    }
-
-    val bgApplied = if (bg != null) {
-        val bgStart = bg.bg
-
-        if (nest) {
-            fgApplied.qApplyColorNestable(bgStart)
-        } else {
-            "$bgStart$fgApplied$qEND"
-        }
-    } else {
-        fgApplied
-    }
-
-    return bgApplied
-}
-
-// CallChain[size=11] = qEND <-[Call]- String.qColorLine() <-[Call]- String.qColor() <-[Call]- Strin ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-private const val qEND = "${qSTART}0m"
-
-// CallChain[size=11] = String.qApplyColorNestable() <-[Call]- String.qColorLine() <-[Call]- String. ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-private fun String.qApplyColorNestable(colorStart: String): String {
-    val re = "(?s)(\\Q$qEND\\E)(.+?)(\\Q$qSTART\\E|$)".re
-    val replace = "$1$colorStart$2$qEND$3"
-    val re2 = "^(?s)(.*?)(\\Q$qSTART\\E)"
-    val replace2 = "$colorStart$1$qEND$2"
-
-    return this.qMaskAndReplace(
-        qMASK_COLORED,
-        re,
-        replace
-    ).qReplaceFirstIfNonEmptyStringGroup(re2, 1, replace2)
-}
-
-// CallChain[size=12] = qBG_JUMP <-[Call]- QShColor.bg <-[Call]- String.qColorLine() <-[Call]- Strin ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-private const val qBG_JUMP = 10
-
-// CallChain[size=12] = qMASK_COLORED <-[Call]- String.qApplyColorNestable() <-[Call]- String.qColor ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-private val qMASK_COLORED by lazy {
-    QMaskBetween(
-        qSTART,
-        qEND,
-        qSTART,
-        escapeChar = '\\',
-        targetNestDepth = 1,
-        maskIncludeStartAndEndSequence = false
-    )
-}
+// CallChain[size=2] = blue <-[Call]- QBlock.toString()[Root]
+internal val String?.blue: String
+    get() = this?.qColor(QShColor.BLUE) ?: "null".qColor(QShColor.BLUE)
 
 // CallChain[size=17] = cyan <-[Call]- QMaskResult.toString() <-[Propag]- QMaskResult <-[Ref]- QMask ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 internal val String?.cyan: String
     get() = this?.qColor(QShColor.CYAN) ?: "null".qColor(QShColor.CYAN)
 
-// CallChain[size=14] = noColor <-[Call]- QConsole.print() <-[Propag]- QConsole <-[Call]- QOut.CONSO ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-internal val String.noColor: String
-    get() {
-        return this.replace("""\Q$qSTART\E\d{1,2}m""".re, "")
-    }
+// CallChain[size=5] = light_gray <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+internal val String?.light_gray: String
+    get() = this?.qColor(QShColor.LIGHT_GRAY) ?: "null".qColor(QShColor.LIGHT_GRAY)
+
+// CallChain[size=2] = dark_gray <-[Call]- QBlock.toString()[Root]
+internal val String?.dark_gray: String
+    get() = this?.qColor(QShColor.DARK_GRAY) ?: "null".qColor(QShColor.DARK_GRAY)
 
 // CallChain[size=11] = light_green <-[Call]- QLogStyle.qLogArrow() <-[Call]- QLogStyle.S <-[Call]-  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 internal val String?.light_green: String

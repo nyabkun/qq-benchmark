@@ -2214,7 +2214,7 @@ private val String.noColor: String
     }
 
 // CallChain[size=8] = QShColor <-[Ref]- QException.mySrcAndStack <-[Call]- QException.printStackTra ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-enum class QShColor(val code: Int) {
+private enum class QShColor(val code: Int) {
     // CallChain[size=9] = QShColor.BLACK <-[Propag]- QShColor.LIGHT_YELLOW <-[Call]- QException.mySrcAn ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     BLACK(30),
     // CallChain[size=9] = QShColor.RED <-[Propag]- QShColor.LIGHT_YELLOW <-[Call]- QException.mySrcAndS ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]

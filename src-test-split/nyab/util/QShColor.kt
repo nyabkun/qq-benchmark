@@ -13,13 +13,40 @@ package nyab.util
 // qq-benchmark is a self-contained single-file library created by nyabkun.
 // This is a split-file version of the library, this file is not self-contained.
 
-// CallChain[size=13] = light_gray <-[Call]- QE.throwIt() <-[Call]- qUnreachable() <-[Call]- QFetchR ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal val String?.light_gray: String
-    get() = this?.qColor(QShColor.LIGHT_GRAY) ?: "null".qColor(QShColor.LIGHT_GRAY)
+// CallChain[size=20] = qBG_JUMP <-[Call]- QShColor.bg <-[Call]- String.qColorLine() <-[Call]- Strin ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+private const val qBG_JUMP = 10
 
-// CallChain[size=16] = yellow <-[Call]- QException.qToString() <-[Call]- QException.toString() <-[P ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal val String?.yellow: String
-    get() = this?.qColor(QShColor.YELLOW) ?: "null".qColor(QShColor.YELLOW)
+// CallChain[size=18] = qSTART <-[Call]- String.qColor() <-[Call]- yellow <-[Call]- QException.qToSt ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+private const val qSTART = "\u001B["
+
+// CallChain[size=19] = qEND <-[Call]- String.qColorLine() <-[Call]- String.qColor() <-[Call]- yello ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+private const val qEND = "${qSTART}0m"
+
+// CallChain[size=20] = qMASK_COLORED <-[Call]- String.qApplyColorNestable() <-[Call]- String.qColor ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+private val qMASK_COLORED by lazy {
+    QMaskBetween(
+        qSTART,
+        qEND,
+        qSTART,
+        escapeChar = '\\',
+        targetNestDepth = 1,
+        maskIncludeStartAndEndSequence = false
+    )
+}
+
+// CallChain[size=19] = String.qApplyColorNestable() <-[Call]- String.qColorLine() <-[Call]- String. ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+private fun String.qApplyColorNestable(colorStart: String): String {
+    val re = "(?s)(\\Q$qEND\\E)(.+?)(\\Q$qSTART\\E|$)".re
+    val replace = "$1$colorStart$2$qEND$3"
+    val re2 = "^(?s)(.*?)(\\Q$qSTART\\E)"
+    val replace2 = "$colorStart$1$qEND$2"
+
+    return this.qMaskAndReplace(
+        qMASK_COLORED,
+        re,
+        replace
+    ).qReplaceFirstIfNonEmptyStringGroup(re2, 1, replace2)
+}
 
 // CallChain[size=17] = String.qColor() <-[Call]- yellow <-[Call]- QException.qToString() <-[Call]-  ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal fun String.qColor(fg: QShColor? = null, bg: QShColor? = null, nestable: Boolean = this.contains(qSTART)): String {
@@ -32,8 +59,49 @@ internal fun String.qColor(fg: QShColor? = null, bg: QShColor? = null, nestable:
     }
 }
 
+// CallChain[size=18] = String.qColorLine() <-[Call]- String.qColor() <-[Call]- yellow <-[Call]- QEx ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+private fun String.qColorLine(
+    fg: QShColor? = null,
+    bg: QShColor? = null,
+    nestable: Boolean = true,
+): String {
+    val nest = nestable && this.contains(qEND)
+
+    val fgApplied = if (fg != null) {
+        val fgStart = fg.fg
+
+        if (nest) {
+            this.qApplyColorNestable(fgStart)
+        } else {
+            "$fgStart$this$qEND"
+        }
+    } else {
+        this
+    }
+
+    val bgApplied = if (bg != null) {
+        val bgStart = bg.bg
+
+        if (nest) {
+            fgApplied.qApplyColorNestable(bgStart)
+        } else {
+            "$bgStart$fgApplied$qEND"
+        }
+    } else {
+        fgApplied
+    }
+
+    return bgApplied
+}
+
+// CallChain[size=17] = noColor <-[Call]- qLogStackFrames() <-[Call]- QException.mySrcAndStack <-[Ca ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal val String.noColor: String
+    get() {
+        return this.replace("""\Q$qSTART\E\d{1,2}m""".re, "")
+    }
+
 // CallChain[size=17] = QShColor <-[Ref]- yellow <-[Call]- QException.qToString() <-[Call]- QExcepti ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-enum class QShColor(val code: Int) {
+internal enum class QShColor(val code: Int) {
     // CallChain[size=18] = QShColor.BLACK <-[Propag]- QShColor.YELLOW <-[Call]- yellow <-[Call]- QExcep ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
     BLACK(30),
     // CallChain[size=18] = QShColor.RED <-[Propag]- QShColor.YELLOW <-[Call]- yellow <-[Call]- QExcepti ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
@@ -81,119 +149,51 @@ enum class QShColor(val code: Int) {
     }
 }
 
-// CallChain[size=18] = qSTART <-[Call]- String.qColor() <-[Call]- yellow <-[Call]- QException.qToSt ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-private const val qSTART = "\u001B["
-
-// CallChain[size=18] = String.qColorLine() <-[Call]- String.qColor() <-[Call]- yellow <-[Call]- QEx ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-private fun String.qColorLine(
-    fg: QShColor? = null,
-    bg: QShColor? = null,
-    nestable: Boolean = true,
-): String {
-    val nest = nestable && this.contains(qEND)
-
-    val fgApplied = if (fg != null) {
-        val fgStart = fg.fg
-
-        if (nest) {
-            this.qApplyColorNestable(fgStart)
-        } else {
-            "$fgStart$this$qEND"
-        }
-    } else {
-        this
-    }
-
-    val bgApplied = if (bg != null) {
-        val bgStart = bg.bg
-
-        if (nest) {
-            fgApplied.qApplyColorNestable(bgStart)
-        } else {
-            "$bgStart$fgApplied$qEND"
-        }
-    } else {
-        fgApplied
-    }
-
-    return bgApplied
-}
-
-// CallChain[size=19] = qEND <-[Call]- String.qColorLine() <-[Call]- String.qColor() <-[Call]- yello ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-private const val qEND = "${qSTART}0m"
-
-// CallChain[size=19] = String.qApplyColorNestable() <-[Call]- String.qColorLine() <-[Call]- String. ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-private fun String.qApplyColorNestable(colorStart: String): String {
-    val re = "(?s)(\\Q$qEND\\E)(.+?)(\\Q$qSTART\\E|$)".re
-    val replace = "$1$colorStart$2$qEND$3"
-    val re2 = "^(?s)(.*?)(\\Q$qSTART\\E)"
-    val replace2 = "$colorStart$1$qEND$2"
-
-    return this.qMaskAndReplace(
-        qMASK_COLORED,
-        re,
-        replace
-    ).qReplaceFirstIfNonEmptyStringGroup(re2, 1, replace2)
-}
-
-// CallChain[size=20] = qBG_JUMP <-[Call]- QShColor.bg <-[Call]- String.qColorLine() <-[Call]- Strin ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-private const val qBG_JUMP = 10
-
-// CallChain[size=20] = qMASK_COLORED <-[Call]- String.qApplyColorNestable() <-[Call]- String.qColor ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-private val qMASK_COLORED by lazy {
-    QMaskBetween(
-        qSTART,
-        qEND,
-        qSTART,
-        escapeChar = '\\',
-        targetNestDepth = 1,
-        maskIncludeStartAndEndSequence = false
-    )
-}
-
-// CallChain[size=25] = cyan <-[Call]- QMaskResult.toString() <-[Propag]- QMaskResult <-[Ref]- QMask ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal val String?.cyan: String
-    get() = this?.qColor(QShColor.CYAN) ?: "null".qColor(QShColor.CYAN)
-
 // CallChain[size=16] = String.qColorTarget() <-[Call]- QException.mySrcAndStack <-[Call]- QExceptio ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal fun String.qColorTarget(ptn: Regex, color: QShColor = QShColor.LIGHT_YELLOW): String {
     return ptn.replace(this, "$0".qColor(color))
 }
 
-// CallChain[size=17] = noColor <-[Call]- qLogStackFrames() <-[Call]- QException.mySrcAndStack <-[Ca ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal val String.noColor: String
-    get() {
-        return this.replace("""\Q$qSTART\E\d{1,2}m""".re, "")
-    }
-
-// CallChain[size=19] = light_green <-[Call]- QLogStyle.qLogArrow() <-[Call]- QLogStyle.S <-[Call]-  ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal val String?.light_green: String
-    get() = this?.qColor(QShColor.LIGHT_GREEN) ?: "null".qColor(QShColor.LIGHT_GREEN)
-
-// CallChain[size=21] = light_cyan <-[Call]- qARROW <-[Call]- qArrow() <-[Call]- QLogStyle.qLogArrow ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal val String?.light_cyan: String
-    get() = this?.qColor(QShColor.LIGHT_CYAN) ?: "null".qColor(QShColor.LIGHT_CYAN)
-
 // CallChain[size=5] = red <-[Call]- QBlock.toString() <-[Propag]- QBlock <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal val String?.red: String
     get() = this?.qColor(QShColor.RED) ?: "null".qColor(QShColor.RED)
-
-// CallChain[size=5] = blue <-[Call]- QBlock.toString() <-[Propag]- QBlock <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal val String?.blue: String
-    get() = this?.qColor(QShColor.BLUE) ?: "null".qColor(QShColor.BLUE)
 
 // CallChain[size=5] = green <-[Call]- QBlock.toString() <-[Propag]- QBlock <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal val String?.green: String
     get() = this?.qColor(QShColor.GREEN) ?: "null".qColor(QShColor.GREEN)
 
+// CallChain[size=16] = yellow <-[Call]- QException.qToString() <-[Call]- QException.toString() <-[P ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal val String?.yellow: String
+    get() = this?.qColor(QShColor.YELLOW) ?: "null".qColor(QShColor.YELLOW)
+
+// CallChain[size=5] = blue <-[Call]- QBlock.toString() <-[Propag]- QBlock <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal val String?.blue: String
+    get() = this?.qColor(QShColor.BLUE) ?: "null".qColor(QShColor.BLUE)
+
+// CallChain[size=25] = cyan <-[Call]- QMaskResult.toString() <-[Propag]- QMaskResult <-[Ref]- QMask ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal val String?.cyan: String
+    get() = this?.qColor(QShColor.CYAN) ?: "null".qColor(QShColor.CYAN)
+
+// CallChain[size=13] = light_gray <-[Call]- QE.throwIt() <-[Call]- qUnreachable() <-[Call]- QFetchR ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal val String?.light_gray: String
+    get() = this?.qColor(QShColor.LIGHT_GRAY) ?: "null".qColor(QShColor.LIGHT_GRAY)
+
 // CallChain[size=5] = dark_gray <-[Call]- QBlock.toString() <-[Propag]- QBlock <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal val String?.dark_gray: String
     get() = this?.qColor(QShColor.DARK_GRAY) ?: "null".qColor(QShColor.DARK_GRAY)
+
+// CallChain[size=7] = light_red <-[Call]- allTestedMethods <-[Call]- QTestResult.printIt() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+internal val String?.light_red: String
+    get() = this?.qColor(QShColor.LIGHT_RED) ?: "null".qColor(QShColor.LIGHT_RED)
+
+// CallChain[size=19] = light_green <-[Call]- QLogStyle.qLogArrow() <-[Call]- QLogStyle.S <-[Call]-  ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal val String?.light_green: String
+    get() = this?.qColor(QShColor.LIGHT_GREEN) ?: "null".qColor(QShColor.LIGHT_GREEN)
 
 // CallChain[size=4] = light_blue <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
 internal val String?.light_blue: String
     get() = this?.qColor(QShColor.LIGHT_BLUE) ?: "null".qColor(QShColor.LIGHT_BLUE)
 
-// CallChain[size=7] = light_red <-[Call]- allTestedMethods <-[Call]- QTestResult.printIt() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-internal val String?.light_red: String
-    get() = this?.qColor(QShColor.LIGHT_RED) ?: "null".qColor(QShColor.LIGHT_RED)
+// CallChain[size=21] = light_cyan <-[Call]- qARROW <-[Call]- qArrow() <-[Call]- QLogStyle.qLogArrow ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal val String?.light_cyan: String
+    get() = this?.qColor(QShColor.LIGHT_CYAN) ?: "null".qColor(QShColor.LIGHT_CYAN)

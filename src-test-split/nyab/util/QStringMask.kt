@@ -28,16 +28,77 @@ internal fun String.qCountOccurrence(word: String): Int {
     }.sum()
 }
 
-// CallChain[size=20] = String.qMaskAndReplace() <-[Call]- String.qApplyColorNestable() <-[Call]- St ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal fun String.qMaskAndReplace(
-    mask: QMask,
-    ptn: Regex,
-    replacement: String = "$1",
-    replaceAll: Boolean = true,
-): String {
-    val maskResult = mask.apply(this)
+// CallChain[size=22] = QMask <-[Ref]- QMaskBetween <-[Call]- qMASK_COLORED <-[Call]- String.qApplyC ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal interface QMask {
+    // CallChain[size=23] = QMask.apply() <-[Propag]- QMask <-[Ref]- QMaskBetween <-[Call]- qMASK_COLORE ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    fun apply(text: String): QMaskResult
 
-    return qMaskAndReplace(maskResult.maskedStr, ptn, replacement, replaceAll)
+    companion object {
+        // CallChain[size=10] = QMask.THREE_DOUBLE_QUOTES <-[Call]- QMask.KOTLIN_STRING <-[Call]- Any?.qToLo ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+        val THREE_DOUBLE_QUOTES by lazy {
+            QMaskBetween(
+                "\"\"\"", "\"\"\"",
+                nestStartSequence = null,
+                escapeChar = '\\',
+                maskIncludeStartAndEndSequence = false,
+            )
+        }
+        // CallChain[size=10] = QMask.DOUBLE_QUOTE <-[Call]- QMask.KOTLIN_STRING <-[Call]- Any?.qToLogString ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+        val DOUBLE_QUOTE by lazy {
+            QMaskBetween(
+                "\"", "\"",
+                nestStartSequence = null,
+                escapeChar = '\\',
+                maskIncludeStartAndEndSequence = false,
+            )
+        }
+        // CallChain[size=9] = QMask.KOTLIN_STRING <-[Call]- Any?.qToLogString() <-[Call]- T.qLog() <-[Call] ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+        val KOTLIN_STRING by lazy {
+            QMultiMask(
+                THREE_DOUBLE_QUOTES,
+                DOUBLE_QUOTE
+            )
+        }
+        // CallChain[size=9] = QMask.PARENS <-[Call]- Any?.qToLogString() <-[Call]- T.qLog() <-[Call]- QOneP ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+        val PARENS by lazy {
+            QMaskBetween(
+                "(", ")",
+                nestStartSequence = "(", escapeChar = '\\'
+            )
+        }
+        // CallChain[size=9] = QMask.INNER_BRACKETS <-[Call]- Any?.qToLogString() <-[Call]- T.qLog() <-[Call ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+        val INNER_BRACKETS by lazy {
+            QMaskBetween(
+                "[", "]",
+                nestStartSequence = "[", escapeChar = '', // shell color
+                targetNestDepth = 2,
+                maskIncludeStartAndEndSequence = true
+            )
+        }
+
+        
+    }
+}
+
+// CallChain[size=10] = QMultiMask <-[Call]- QMask.KOTLIN_STRING <-[Call]- Any?.qToLogString() <-[Ca ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal class QMultiMask(vararg mask: QMaskBetween) : QMask {
+    // CallChain[size=12] = QMultiMask.masks <-[Call]- QMultiMask.apply() <-[Propag]- QMultiMask <-[Call ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    val masks: Array<QMaskBetween>
+
+    // CallChain[size=11] = QMultiMask.init { <-[Propag]- QMultiMask <-[Call]- QMask.KOTLIN_STRING <-[Ca ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    init {
+        masks = arrayOf(*mask)
+    }
+
+    // CallChain[size=11] = QMultiMask.apply() <-[Propag]- QMultiMask <-[Call]- QMask.KOTLIN_STRING <-[C ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    override fun apply(text: String): QMaskResult {
+        var result: QMaskResult? = null
+        for (mask in masks) {
+            result = result?.applyMoreMask(mask) ?: mask.apply(text)
+        }
+
+        return result!!
+    }
 }
 
 // CallChain[size=21] = QMaskBetween <-[Call]- qMASK_COLORED <-[Call]- String.qApplyColorNestable()  ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
@@ -117,56 +178,30 @@ internal class QMaskBetween(
     }
 }
 
-// CallChain[size=23] = QMaskResult <-[Ref]- QMaskBetween.apply() <-[Propag]- QMaskBetween.QMaskBetw ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal class QMaskResult(val maskedStr: String, val orgText: String, val maskChar: Char) {
-    // CallChain[size=9] = QMaskResult.replaceAndUnmask() <-[Call]- Any?.qToLogString() <-[Call]- T.qLog ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    /**
-     * Apply regex to masked string.
-     * Apply replacement to original text.
-     */
-    fun replaceAndUnmask(ptn: Regex, replacement: String, findAll: Boolean = true): String {
-        return orgText.qMaskAndReplace(maskedStr, ptn, replacement, findAll)
+// CallChain[size=26] = QMutRegion <-[Ref]- QRegion.toMutRegion() <-[Propag]- QRegion.contains() <-[ ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal open class QMutRegion(override var start: Int, override var end: Int) : QRegion(start, end) {
+    // CallChain[size=27] = QMutRegion.intersectMut() <-[Propag]- QMutRegion <-[Ref]- QRegion.toMutRegio ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    fun intersectMut(region: QRegion) {
+        val start = max(this.start, region.start)
+        val end = min(this.end, region.end)
+
+        if (start <= end) {
+            this.start = start
+            this.end = end
+        }
     }
 
-    // CallChain[size=12] = QMaskResult.applyMoreMask() <-[Call]- QMultiMask.apply() <-[Propag]- QMultiM ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    fun applyMoreMask(mask: QMaskBetween): QMaskResult {
-        return mask.applyMore(maskedStr, orgText)
+    // CallChain[size=27] = QMutRegion.addOffset() <-[Propag]- QMutRegion <-[Ref]- QRegion.toMutRegion() ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    fun addOffset(offset: Int) {
+        start += offset
+        end += offset
     }
 
-    // CallChain[size=24] = QMaskResult.toString() <-[Propag]- QMaskResult <-[Ref]- QMaskBetween.apply() ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    override fun toString(): String {
-        val original = orgText.qWithNewLineSurround(onlyIf = QOnlyIfStr.Multiline)
-        val masked = maskedStr.replace(maskChar, '*').qWithNewLineSurround(onlyIf = QOnlyIfStr.Multiline)
-
-        return "${QMaskResult::class.simpleName} : $original ${"->".cyan} $masked"
+    // CallChain[size=27] = QMutRegion.shift() <-[Propag]- QMutRegion <-[Ref]- QRegion.toMutRegion() <-[ ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    fun shift(length: Int) {
+        this.start += length
+        this.end += length
     }
-}
-
-// CallChain[size=24] = String.qFindBetween() <-[Call]- QMaskBetween.applyMore() <-[Call]- QMaskBetw ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal fun String.qFindBetween(
-    startSequence: String,
-    endSequence: String,
-    nestStartSequence: String? = if (startSequence != endSequence) {
-        startSequence // can have nested structure
-    } else {
-        null // no nested structure
-    },
-    escapeChar: Char? = null,
-    allowEOFEnd: Boolean = false,
-    nestingDepth: Int = 1,
-    regionIncludesStartAndEndSequence: Boolean = false,
-): List<QRegion> {
-    val finder = QBetween(
-        startSequence,
-        endSequence,
-        nestStartSequence,
-        escapeChar,
-        allowEOFEnd,
-        nestingDepth,
-        regionIncludesStartAndEndSequence
-    )
-
-    return finder.find(this)
 }
 
 // CallChain[size=26] = QRegion <-[Ref]- QRegion.intersect() <-[Propag]- QRegion.contains() <-[Call] ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
@@ -226,104 +261,165 @@ internal open class QRegion(open val start: Int, open val end: Int) {
     }
 }
 
-// CallChain[size=26] = QMutRegion <-[Ref]- QRegion.toMutRegion() <-[Propag]- QRegion.contains() <-[ ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal open class QMutRegion(override var start: Int, override var end: Int) : QRegion(start, end) {
-    // CallChain[size=27] = QMutRegion.intersectMut() <-[Propag]- QMutRegion <-[Ref]- QRegion.toMutRegio ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    fun intersectMut(region: QRegion) {
-        val start = max(this.start, region.start)
-        val end = min(this.end, region.end)
+// CallChain[size=22] = QReplacer <-[Ref]- String.qMaskAndReplace() <-[Call]- String.qMaskAndReplace ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal class QReplacer(start: Int, end: Int, val replacement: String) : QMutRegion(start, end)
 
-        if (start <= end) {
-            this.start = start
-            this.end = end
-        }
+// CallChain[size=23] = QMaskResult <-[Ref]- QMaskBetween.apply() <-[Propag]- QMaskBetween.QMaskBetw ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal class QMaskResult(val maskedStr: String, val orgText: String, val maskChar: Char) {
+    // CallChain[size=9] = QMaskResult.replaceAndUnmask() <-[Call]- Any?.qToLogString() <-[Call]- T.qLog ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    /**
+     * Apply regex to masked string.
+     * Apply replacement to original text.
+     */
+    fun replaceAndUnmask(ptn: Regex, replacement: String, findAll: Boolean = true): String {
+        return orgText.qMaskAndReplace(maskedStr, ptn, replacement, findAll)
     }
 
-    // CallChain[size=27] = QMutRegion.addOffset() <-[Propag]- QMutRegion <-[Ref]- QRegion.toMutRegion() ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    fun addOffset(offset: Int) {
-        start += offset
-        end += offset
+    // CallChain[size=12] = QMaskResult.applyMoreMask() <-[Call]- QMultiMask.apply() <-[Propag]- QMultiM ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    fun applyMoreMask(mask: QMaskBetween): QMaskResult {
+        return mask.applyMore(maskedStr, orgText)
     }
 
-    // CallChain[size=27] = QMutRegion.shift() <-[Propag]- QMutRegion <-[Ref]- QRegion.toMutRegion() <-[ ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    fun shift(length: Int) {
-        this.start += length
-        this.end += length
+    // CallChain[size=24] = QMaskResult.toString() <-[Propag]- QMaskResult <-[Ref]- QMaskBetween.apply() ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    override fun toString(): String {
+        val original = orgText.qWithNewLineSurround(onlyIf = QOnlyIfStr.Multiline)
+        val masked = maskedStr.replace(maskChar, '*').qWithNewLineSurround(onlyIf = QOnlyIfStr.Multiline)
+
+        return "${QMaskResult::class.simpleName} : $original ${"->".cyan} $masked"
     }
 }
 
-// CallChain[size=25] = QBetween <-[Call]- String.qFindBetween() <-[Call]- QMaskBetween.applyMore()  ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-private class QBetween(
-    val startSequence: String,
-    val endSequence: String,
-    val nestStartSequence: String? = if (startSequence != endSequence) {
+// CallChain[size=9] = CharSequence.qMask() <-[Call]- Any?.qToLogString() <-[Call]- T.qLog() <-[Call ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal fun CharSequence.qMask(vararg mask: QMask): QMaskResult {
+    mask.size.qaNotZero()
+
+    return if (mask.size == 1) {
+        mask[0].apply(this.toString())
+    } else {
+        val masks = mutableListOf<QMaskBetween>()
+        for (m in mask) {
+            if (m is QMaskBetween) {
+                masks += m
+            } else if (m is QMultiMask) {
+                masks += m.masks
+            }
+        }
+
+        QMultiMask(*masks.toTypedArray()).apply(this.toString())
+    }
+}
+
+// CallChain[size=24] = String.qFindBetween() <-[Call]- QMaskBetween.applyMore() <-[Call]- QMaskBetw ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal fun String.qFindBetween(
+    startSequence: String,
+    endSequence: String,
+    nestStartSequence: String? = if (startSequence != endSequence) {
         startSequence // can have nested structure
     } else {
         null // no nested structure
     },
-    val escapeChar: Char? = null,
-    val allowEOFEnd: Boolean = false,
-    val nestingDepth: Int = 1,
-    val regionIncludeStartAndEndSequence: Boolean = false,
-) {
+    escapeChar: Char? = null,
+    allowEOFEnd: Boolean = false,
+    nestingDepth: Int = 1,
+    regionIncludesStartAndEndSequence: Boolean = false,
+): List<QRegion> {
+    val finder = QBetween(
+        startSequence,
+        endSequence,
+        nestStartSequence,
+        escapeChar,
+        allowEOFEnd,
+        nestingDepth,
+        regionIncludesStartAndEndSequence
+    )
 
-    // CallChain[size=25] = QBetween.find() <-[Call]- String.qFindBetween() <-[Call]- QMaskBetween.apply ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    fun find(text: CharSequence): List<QRegion> {
-        val reader = QSequenceReader(text)
+    return finder.find(this)
+}
 
-        val ranges: MutableList<QRegion> = mutableListOf()
+// CallChain[size=21] = String.qMaskAndReplace() <-[Call]- String.qMaskAndReplace() <-[Call]- String ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+private fun String.qMaskAndReplace(
+    maskedStr: String,
+    ptn: Regex,
+    replacement: String = "$1",
+    replaceAll: Boolean = true,
+): String {
+    // Apply Regex pattern to maskedStr
+    val findResults: Sequence<MatchResult> = if (replaceAll) {
+        ptn.findAll(maskedStr)
+    } else {
+        val result = ptn.find(maskedStr)
+        if (result == null) {
+            emptySequence()
+        } else {
+            sequenceOf(result)
+        }
+    }
 
-        val startChArr = startSequence.toCharArray()
-        val nestStartChArr = nestStartSequence?.toCharArray()
-        val endChArr = endSequence.toCharArray()
+    val replacers: MutableList<QReplacer> = mutableListOf()
 
-        var nNest = 0
+    for (r in findResults) {
+        val g = r.qResolveReplacementGroup(replacement, this)
+        replacers += QReplacer(
+            r.range.first,
+            r.range.last + 1,
+            g
+        )
+    }
 
-        var startSeqOffset = -1
+    // Apply replacements to this String instead of maskedStr
+    return qMultiReplace(replacers)
+}
 
-        while (reader.hasNextChar()) {
-            val ch = reader.peekNextChar()
+// CallChain[size=20] = String.qMaskAndReplace() <-[Call]- String.qApplyColorNestable() <-[Call]- St ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal fun String.qMaskAndReplace(
+    mask: QMask,
+    ptn: Regex,
+    replacement: String = "$1",
+    replaceAll: Boolean = true,
+): String {
+    val maskResult = mask.apply(this)
 
-            if (ch == escapeChar) {
-                reader.moveOffset(2)
-                continue
-            } else {
+    return qMaskAndReplace(maskResult.maskedStr, ptn, replacement, replaceAll)
+}
 
-                val startSequenceDetected = if (nNest == 0) {
-                    reader.detectSequence(startChArr, allowEOFEnd)
-                } else if (nestStartChArr != null) {
-                    reader.detectSequence(nestStartChArr, allowEOFEnd)
-                } else {
-                    false
-                }
+// CallChain[size=22] = CharSequence.qMultiReplace() <-[Call]- String.qMaskAndReplace() <-[Call]- St ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+/**
+ * currently does not support region overlap
+ */
+internal fun CharSequence.qMultiReplace(replacers: List<QReplacer>): String {
+    // TODO Use StringBuilder
+    val sb = StringBuilder(this)
+    var offset = 0
+    for (r in replacers) {
+        sb.replace(r.start + offset, r.end + offset, r.replacement)
+        offset += r.replacement.length - (r.end - r.start)
+    }
 
-                if (startSequenceDetected) {
-                    nNest++
+    return sb.toString()
+}
 
-                    if (nestingDepth == nNest) {
-                        startSeqOffset = reader.offset
-                    }
-                } else if (nNest > 0 && reader.detectSequence(endChArr, allowEOFEnd)) {
-                    if (nestingDepth == nNest) {
-                        val endSeqOffset = reader.offset - endChArr.size // exclusive
+// CallChain[size=22] = MatchResult.qResolveReplacementGroup() <-[Call]- String.qMaskAndReplace() <- ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal fun MatchResult.qResolveReplacementGroup(replacement: String, orgText: String): String {
+    var resolveGroup = replacement
 
-                        ranges += if (!regionIncludeStartAndEndSequence) {
-                            QRegion(startSeqOffset, endSeqOffset)
-                        } else {
-                            val end = min(endSeqOffset + endChArr.size, text.length)
-                            QRegion(startSeqOffset - startChArr.size, end)
-                        }
-                    }
+    for ((i, g) in groups.withIndex()) {
+        if (g == null) continue
 
-                    nNest--
-                } else {
-                    reader.moveOffset()
-                }
-            }
+        val gValue = if (g.range.last - g.range.first == 0 || !resolveGroup.contains("$")) {
+            ""
+        } else {
+            orgText.substring(g.range)
         }
 
-        return ranges
+        resolveGroup = resolveGroup.qReplace("$$i", gValue, '\\')
     }
+
+    return resolveGroup
+}
+
+// CallChain[size=23] = CharSequence.qReplace() <-[Call]- MatchResult.qResolveReplacementGroup() <-[ ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal fun CharSequence.qReplace(oldValue: String, newValue: String, escapeChar: Char): String {
+    return replace(Regex("""(?<!\Q$escapeChar\E)\Q$oldValue\E"""), newValue)
 }
 
 // CallChain[size=26] = QSequenceReader <-[Call]- QBetween.find() <-[Call]- String.qFindBetween() <- ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
@@ -527,172 +623,76 @@ internal open class QCharReader(val text: CharSequence) {
     }
 }
 
-// CallChain[size=22] = QMask <-[Ref]- QMaskBetween <-[Call]- qMASK_COLORED <-[Call]- String.qApplyC ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal interface QMask {
-    // CallChain[size=23] = QMask.apply() <-[Propag]- QMask <-[Ref]- QMaskBetween <-[Call]- qMASK_COLORE ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    fun apply(text: String): QMaskResult
-
-    companion object {
-        // CallChain[size=10] = QMask.THREE_DOUBLE_QUOTES <-[Call]- QMask.KOTLIN_STRING <-[Call]- Any?.qToLo ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-        val THREE_DOUBLE_QUOTES by lazy {
-            QMaskBetween(
-                "\"\"\"", "\"\"\"",
-                nestStartSequence = null,
-                escapeChar = '\\',
-                maskIncludeStartAndEndSequence = false,
-            )
-        }
-        // CallChain[size=10] = QMask.DOUBLE_QUOTE <-[Call]- QMask.KOTLIN_STRING <-[Call]- Any?.qToLogString ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-        val DOUBLE_QUOTE by lazy {
-            QMaskBetween(
-                "\"", "\"",
-                nestStartSequence = null,
-                escapeChar = '\\',
-                maskIncludeStartAndEndSequence = false,
-            )
-        }
-        // CallChain[size=9] = QMask.KOTLIN_STRING <-[Call]- Any?.qToLogString() <-[Call]- T.qLog() <-[Call] ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-        val KOTLIN_STRING by lazy {
-            QMultiMask(
-                THREE_DOUBLE_QUOTES,
-                DOUBLE_QUOTE
-            )
-        }
-        // CallChain[size=9] = QMask.PARENS <-[Call]- Any?.qToLogString() <-[Call]- T.qLog() <-[Call]- QOneP ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-        val PARENS by lazy {
-            QMaskBetween(
-                "(", ")",
-                nestStartSequence = "(", escapeChar = '\\'
-            )
-        }
-        // CallChain[size=9] = QMask.INNER_BRACKETS <-[Call]- Any?.qToLogString() <-[Call]- T.qLog() <-[Call ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-        val INNER_BRACKETS by lazy {
-            QMaskBetween(
-                "[", "]",
-                nestStartSequence = "[", escapeChar = '', // shell color
-                targetNestDepth = 2,
-                maskIncludeStartAndEndSequence = true
-            )
-        }
-
-        
-    }
-}
-
-// CallChain[size=21] = String.qMaskAndReplace() <-[Call]- String.qMaskAndReplace() <-[Call]- String ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-private fun String.qMaskAndReplace(
-    maskedStr: String,
-    ptn: Regex,
-    replacement: String = "$1",
-    replaceAll: Boolean = true,
-): String {
-    // Apply Regex pattern to maskedStr
-    val findResults: Sequence<MatchResult> = if (replaceAll) {
-        ptn.findAll(maskedStr)
+// CallChain[size=25] = QBetween <-[Call]- String.qFindBetween() <-[Call]- QMaskBetween.applyMore()  ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+private class QBetween(
+    val startSequence: String,
+    val endSequence: String,
+    val nestStartSequence: String? = if (startSequence != endSequence) {
+        startSequence // can have nested structure
     } else {
-        val result = ptn.find(maskedStr)
-        if (result == null) {
-            emptySequence()
-        } else {
-            sequenceOf(result)
-        }
-    }
+        null // no nested structure
+    },
+    val escapeChar: Char? = null,
+    val allowEOFEnd: Boolean = false,
+    val nestingDepth: Int = 1,
+    val regionIncludeStartAndEndSequence: Boolean = false,
+) {
 
-    val replacers: MutableList<QReplacer> = mutableListOf()
+    // CallChain[size=25] = QBetween.find() <-[Call]- String.qFindBetween() <-[Call]- QMaskBetween.apply ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    fun find(text: CharSequence): List<QRegion> {
+        val reader = QSequenceReader(text)
 
-    for (r in findResults) {
-        val g = r.qResolveReplacementGroup(replacement, this)
-        replacers += QReplacer(
-            r.range.first,
-            r.range.last + 1,
-            g
-        )
-    }
+        val ranges: MutableList<QRegion> = mutableListOf()
 
-    // Apply replacements to this String instead of maskedStr
-    return qMultiReplace(replacers)
-}
+        val startChArr = startSequence.toCharArray()
+        val nestStartChArr = nestStartSequence?.toCharArray()
+        val endChArr = endSequence.toCharArray()
 
-// CallChain[size=22] = QReplacer <-[Ref]- String.qMaskAndReplace() <-[Call]- String.qMaskAndReplace ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal class QReplacer(start: Int, end: Int, val replacement: String) : QMutRegion(start, end)
+        var nNest = 0
 
-// CallChain[size=22] = MatchResult.qResolveReplacementGroup() <-[Call]- String.qMaskAndReplace() <- ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal fun MatchResult.qResolveReplacementGroup(replacement: String, orgText: String): String {
-    var resolveGroup = replacement
+        var startSeqOffset = -1
 
-    for ((i, g) in groups.withIndex()) {
-        if (g == null) continue
+        while (reader.hasNextChar()) {
+            val ch = reader.peekNextChar()
 
-        val gValue = if (g.range.last - g.range.first == 0 || !resolveGroup.contains("$")) {
-            ""
-        } else {
-            orgText.substring(g.range)
-        }
+            if (ch == escapeChar) {
+                reader.moveOffset(2)
+                continue
+            } else {
 
-        resolveGroup = resolveGroup.qReplace("$$i", gValue, '\\')
-    }
+                val startSequenceDetected = if (nNest == 0) {
+                    reader.detectSequence(startChArr, allowEOFEnd)
+                } else if (nestStartChArr != null) {
+                    reader.detectSequence(nestStartChArr, allowEOFEnd)
+                } else {
+                    false
+                }
 
-    return resolveGroup
-}
+                if (startSequenceDetected) {
+                    nNest++
 
-// CallChain[size=22] = CharSequence.qMultiReplace() <-[Call]- String.qMaskAndReplace() <-[Call]- St ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-/**
- * currently does not support region overlap
- */
-internal fun CharSequence.qMultiReplace(replacers: List<QReplacer>): String {
-    // TODO Use StringBuilder
-    val sb = StringBuilder(this)
-    var offset = 0
-    for (r in replacers) {
-        sb.replace(r.start + offset, r.end + offset, r.replacement)
-        offset += r.replacement.length - (r.end - r.start)
-    }
+                    if (nestingDepth == nNest) {
+                        startSeqOffset = reader.offset
+                    }
+                } else if (nNest > 0 && reader.detectSequence(endChArr, allowEOFEnd)) {
+                    if (nestingDepth == nNest) {
+                        val endSeqOffset = reader.offset - endChArr.size // exclusive
 
-    return sb.toString()
-}
+                        ranges += if (!regionIncludeStartAndEndSequence) {
+                            QRegion(startSeqOffset, endSeqOffset)
+                        } else {
+                            val end = min(endSeqOffset + endChArr.size, text.length)
+                            QRegion(startSeqOffset - startChArr.size, end)
+                        }
+                    }
 
-// CallChain[size=23] = CharSequence.qReplace() <-[Call]- MatchResult.qResolveReplacementGroup() <-[ ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal fun CharSequence.qReplace(oldValue: String, newValue: String, escapeChar: Char): String {
-    return replace(Regex("""(?<!\Q$escapeChar\E)\Q$oldValue\E"""), newValue)
-}
-
-// CallChain[size=9] = CharSequence.qMask() <-[Call]- Any?.qToLogString() <-[Call]- T.qLog() <-[Call ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal fun CharSequence.qMask(vararg mask: QMask): QMaskResult {
-    mask.size.qaNotZero()
-
-    return if (mask.size == 1) {
-        mask[0].apply(this.toString())
-    } else {
-        val masks = mutableListOf<QMaskBetween>()
-        for (m in mask) {
-            if (m is QMaskBetween) {
-                masks += m
-            } else if (m is QMultiMask) {
-                masks += m.masks
+                    nNest--
+                } else {
+                    reader.moveOffset()
+                }
             }
         }
 
-        QMultiMask(*masks.toTypedArray()).apply(this.toString())
-    }
-}
-
-// CallChain[size=10] = QMultiMask <-[Call]- QMask.KOTLIN_STRING <-[Call]- Any?.qToLogString() <-[Ca ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal class QMultiMask(vararg mask: QMaskBetween) : QMask {
-    // CallChain[size=12] = QMultiMask.masks <-[Call]- QMultiMask.apply() <-[Propag]- QMultiMask <-[Call ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    val masks: Array<QMaskBetween>
-
-    // CallChain[size=11] = QMultiMask.init { <-[Propag]- QMultiMask <-[Call]- QMask.KOTLIN_STRING <-[Ca ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    init {
-        masks = arrayOf(*mask)
-    }
-
-    // CallChain[size=11] = QMultiMask.apply() <-[Propag]- QMultiMask <-[Call]- QMask.KOTLIN_STRING <-[C ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    override fun apply(text: String): QMaskResult {
-        var result: QMaskResult? = null
-        for (mask in masks) {
-            result = result?.applyMoreMask(mask) ?: mask.apply(text)
-        }
-
-        return result!!
+        return ranges
     }
 }

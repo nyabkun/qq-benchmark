@@ -86,14 +86,18 @@ internal class QOnePassStat(val maxSamplesInHeap: Int = 10_000) {
     }
 }
 
-// CallChain[size=6] = DoubleArray.qMedian() <-[Call]- QOnePassStat.median <-[Call]- QBlockLoop.time ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal fun DoubleArray.qMedian(): Double =
-    sorted().let {
-        if (it.size % 2 == 0)
-            (it[it.size / 2] + it[(it.size - 1) / 2]) / 2
-        else
-            it[it.size / 2]
+// CallChain[size=8] = QFixedSizeList <-[Call]- QOnePassStat.dataHead <-[Call]- QOnePassStat.data <- ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal class QFixedSizeList<T>(val maxSize: Int, val backend: MutableList<T> = ArrayList(maxSize)) :
+    MutableList<T> by backend {
+    // CallChain[size=9] = QFixedSizeList.add() <-[Propag]- QFixedSizeList <-[Call]- QOnePassStat.dataHe ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    override fun add(element: T): Boolean {
+        return if (this.size < maxSize) {
+            backend.add(element)
+        } else {
+            false
+        }
     }
+}
 
 // CallChain[size=8] = QFixedSizeQueue <-[Call]- QOnePassStat.dataTail <-[Call]- QOnePassStat.data < ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal class QFixedSizeQueue<T>(val maxSize: Int, val backend: ArrayDeque<T> = ArrayDeque(maxSize)) :
@@ -110,15 +114,11 @@ internal class QFixedSizeQueue<T>(val maxSize: Int, val backend: ArrayDeque<T> =
     }
 }
 
-// CallChain[size=8] = QFixedSizeList <-[Call]- QOnePassStat.dataHead <-[Call]- QOnePassStat.data <- ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal class QFixedSizeList<T>(val maxSize: Int, val backend: MutableList<T> = ArrayList(maxSize)) :
-    MutableList<T> by backend {
-    // CallChain[size=9] = QFixedSizeList.add() <-[Propag]- QFixedSizeList <-[Call]- QOnePassStat.dataHe ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    override fun add(element: T): Boolean {
-        return if (this.size < maxSize) {
-            backend.add(element)
-        } else {
-            false
-        }
+// CallChain[size=6] = DoubleArray.qMedian() <-[Call]- QOnePassStat.median <-[Call]- QBlockLoop.time ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal fun DoubleArray.qMedian(): Double =
+    sorted().let {
+        if (it.size % 2 == 0)
+            (it[it.size / 2] + it[(it.size - 1) / 2]) / 2
+        else
+            it[it.size / 2]
     }
-}

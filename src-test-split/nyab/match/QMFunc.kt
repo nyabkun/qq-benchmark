@@ -19,6 +19,81 @@ import nyab.util.QFlagEnum
 // qq-benchmark is a self-contained single-file library created by nyabkun.
 // This is a split-file version of the library, this file is not self-contained.
 
+// CallChain[size=12] = qAnd() <-[Call]- QMFunc.and() <-[Call]- qToStringRegistry <-[Call]- Any?.qTo ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+private fun qAnd(vararg matches: QMFunc): QMFunc = QMatchFuncAnd(*matches)
+
+// CallChain[size=11] = QMFunc.and() <-[Call]- qToStringRegistry <-[Call]- Any?.qToString() <-[Call] ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal infix fun QMFunc.and(match: QMFunc): QMFunc {
+    return if (this is QMatchFuncAnd) {
+        QMatchFuncAnd(*matchList, match)
+    } else {
+        qAnd(this, match)
+    }
+}
+
+// CallChain[size=13] = QMatchFuncAny <-[Call]- QMFunc.isAny() <-[Propag]- QMFunc.IncludeExtensionsI ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+private object QMatchFuncAny : QMFuncA() {
+    // CallChain[size=14] = QMatchFuncAny.matches() <-[Propag]- QMatchFuncAny <-[Call]- QMFunc.isAny() < ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    override fun matches(value: KFunction<*>): Boolean {
+        return true
+    }
+}
+
+// CallChain[size=13] = QMatchFuncNone <-[Call]- QMFunc.isNone() <-[Propag]- QMFunc.IncludeExtension ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+private object QMatchFuncNone : QMFuncA() {
+    // CallChain[size=14] = QMatchFuncNone.matches() <-[Propag]- QMatchFuncNone <-[Call]- QMFunc.isNone( ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    override fun matches(value: KFunction<*>): Boolean {
+        return false
+    }
+}
+
+// CallChain[size=12] = QMatchFuncDeclaredOnly <-[Call]- QMFunc.DeclaredOnly <-[Call]- qToStringRegi ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+private object QMatchFuncDeclaredOnly : QMFuncA() {
+    // CallChain[size=13] = QMatchFuncDeclaredOnly.declaredOnly <-[Propag]- QMatchFuncDeclaredOnly <-[Ca ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    override val declaredOnly = true
+
+    // CallChain[size=13] = QMatchFuncDeclaredOnly.matches() <-[Propag]- QMatchFuncDeclaredOnly <-[Call] ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    override fun matches(value: KFunction<*>): Boolean {
+        return true
+    }
+}
+
+// CallChain[size=12] = QMatchFuncIncludeExtensionsInClass <-[Call]- QMFunc.IncludeExtensionsInClass ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+private object QMatchFuncIncludeExtensionsInClass : QMFuncA() {
+    // CallChain[size=13] = QMatchFuncIncludeExtensionsInClass.includeExtensionsInClass <-[Propag]- QMat ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    override val includeExtensionsInClass = true
+
+    // CallChain[size=13] = QMatchFuncIncludeExtensionsInClass.matches() <-[Propag]- QMatchFuncIncludeEx ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    override fun matches(value: KFunction<*>): Boolean {
+        return true
+    }
+}
+
+// CallChain[size=12] = QMatchFuncAnd <-[Ref]- QMFunc.and() <-[Call]- qToStringRegistry <-[Call]- An ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+private class QMatchFuncAnd(vararg match: QMFunc) : QMFuncA() {
+    // CallChain[size=12] = QMatchFuncAnd.matchList <-[Call]- QMFunc.and() <-[Call]- qToStringRegistry < ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    val matchList = match
+
+    // CallChain[size=13] = QMatchFuncAnd.declaredOnly <-[Propag]- QMatchFuncAnd.matchList <-[Call]- QMF ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    override val declaredOnly = matchList.any { it.declaredOnly }
+
+    // CallChain[size=13] = QMatchFuncAnd.includeExtensionsInClass <-[Propag]- QMatchFuncAnd.matchList < ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    override val includeExtensionsInClass: Boolean = matchList.any { it.includeExtensionsInClass }
+
+    // CallChain[size=13] = QMatchFuncAnd.matches() <-[Propag]- QMatchFuncAnd.matchList <-[Call]- QMFunc ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    override fun matches(value: KFunction<*>): Boolean {
+        return matchList.all { it.matches(value) }
+    }
+}
+
+// CallChain[size=14] = QMFuncA <-[Call]- QMatchFuncNone <-[Call]- QMFunc.isNone() <-[Propag]- QMFun ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+private abstract class QMFuncA : QMFunc {
+    // CallChain[size=15] = QMFuncA.declaredOnly <-[Propag]- QMFuncA <-[Call]- QMatchFuncNone <-[Call]-  ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    override val declaredOnly: Boolean = false
+    // CallChain[size=15] = QMFuncA.includeExtensionsInClass <-[Propag]- QMFuncA <-[Call]- QMatchFuncNon ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    override val includeExtensionsInClass: Boolean = false
+}
+
 // CallChain[size=12] = QMFunc <-[Ref]- QMFunc.IncludeExtensionsInClass <-[Call]- qToStringRegistry  ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal interface QMFunc {
     // CallChain[size=12] = QMFunc.declaredOnly <-[Propag]- QMFunc.IncludeExtensionsInClass <-[Call]- qT ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
@@ -57,81 +132,6 @@ internal interface QMFunc {
         
     }
 }
-
-// CallChain[size=11] = QMFunc.and() <-[Call]- qToStringRegistry <-[Call]- Any?.qToString() <-[Call] ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal infix fun QMFunc.and(match: QMFunc): QMFunc {
-    return if (this is QMatchFuncAnd) {
-        QMatchFuncAnd(*matchList, match)
-    } else {
-        qAnd(this, match)
-    }
-}
-
-// CallChain[size=12] = QMatchFuncIncludeExtensionsInClass <-[Call]- QMFunc.IncludeExtensionsInClass ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-private object QMatchFuncIncludeExtensionsInClass : QMFuncA() {
-    // CallChain[size=13] = QMatchFuncIncludeExtensionsInClass.includeExtensionsInClass <-[Propag]- QMat ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    override val includeExtensionsInClass = true
-
-    // CallChain[size=13] = QMatchFuncIncludeExtensionsInClass.matches() <-[Propag]- QMatchFuncIncludeEx ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    override fun matches(value: KFunction<*>): Boolean {
-        return true
-    }
-}
-
-// CallChain[size=13] = QMatchFuncNone <-[Call]- QMFunc.isNone() <-[Propag]- QMFunc.IncludeExtension ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-private object QMatchFuncNone : QMFuncA() {
-    // CallChain[size=14] = QMatchFuncNone.matches() <-[Propag]- QMatchFuncNone <-[Call]- QMFunc.isNone( ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    override fun matches(value: KFunction<*>): Boolean {
-        return false
-    }
-}
-
-// CallChain[size=14] = QMFuncA <-[Call]- QMatchFuncNone <-[Call]- QMFunc.isNone() <-[Propag]- QMFun ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-private abstract class QMFuncA : QMFunc {
-    // CallChain[size=15] = QMFuncA.declaredOnly <-[Propag]- QMFuncA <-[Call]- QMatchFuncNone <-[Call]-  ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    override val declaredOnly: Boolean = false
-    // CallChain[size=15] = QMFuncA.includeExtensionsInClass <-[Propag]- QMFuncA <-[Call]- QMatchFuncNon ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    override val includeExtensionsInClass: Boolean = false
-}
-
-// CallChain[size=13] = QMatchFuncAny <-[Call]- QMFunc.isAny() <-[Propag]- QMFunc.IncludeExtensionsI ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-private object QMatchFuncAny : QMFuncA() {
-    // CallChain[size=14] = QMatchFuncAny.matches() <-[Propag]- QMatchFuncAny <-[Call]- QMFunc.isAny() < ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    override fun matches(value: KFunction<*>): Boolean {
-        return true
-    }
-}
-
-// CallChain[size=12] = QMatchFuncDeclaredOnly <-[Call]- QMFunc.DeclaredOnly <-[Call]- qToStringRegi ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-private object QMatchFuncDeclaredOnly : QMFuncA() {
-    // CallChain[size=13] = QMatchFuncDeclaredOnly.declaredOnly <-[Propag]- QMatchFuncDeclaredOnly <-[Ca ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    override val declaredOnly = true
-
-    // CallChain[size=13] = QMatchFuncDeclaredOnly.matches() <-[Propag]- QMatchFuncDeclaredOnly <-[Call] ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    override fun matches(value: KFunction<*>): Boolean {
-        return true
-    }
-}
-
-// CallChain[size=12] = QMatchFuncAnd <-[Ref]- QMFunc.and() <-[Call]- qToStringRegistry <-[Call]- An ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-private class QMatchFuncAnd(vararg match: QMFunc) : QMFuncA() {
-    // CallChain[size=12] = QMatchFuncAnd.matchList <-[Call]- QMFunc.and() <-[Call]- qToStringRegistry < ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    val matchList = match
-
-    // CallChain[size=13] = QMatchFuncAnd.declaredOnly <-[Propag]- QMatchFuncAnd.matchList <-[Call]- QMF ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    override val declaredOnly = matchList.any { it.declaredOnly }
-
-    // CallChain[size=13] = QMatchFuncAnd.includeExtensionsInClass <-[Propag]- QMatchFuncAnd.matchList < ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    override val includeExtensionsInClass: Boolean = matchList.any { it.includeExtensionsInClass }
-
-    // CallChain[size=13] = QMatchFuncAnd.matches() <-[Propag]- QMatchFuncAnd.matchList <-[Call]- QMFunc ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    override fun matches(value: KFunction<*>): Boolean {
-        return matchList.all { it.matches(value) }
-    }
-}
-
-// CallChain[size=12] = qAnd() <-[Call]- QMFunc.and() <-[Call]- qToStringRegistry <-[Call]- Any?.qTo ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-private fun qAnd(vararg matches: QMFunc): QMFunc = QMatchFuncAnd(*matches)
 
 // CallChain[size=12] = QMatchFuncName <-[Call]- QMFunc.nameExact() <-[Call]- qToStringRegistry <-[C ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 private class QMatchFuncName(val nameMatcher: QM) : QMFuncA() {

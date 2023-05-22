@@ -14,6 +14,7 @@ package nyab.util
 
 import java.io.PrintStream
 import java.nio.file.Path
+import java.util.*
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
@@ -23,11 +24,6 @@ import nyab.match.QM
 
 // qq-benchmark is a self-contained single-file library created by nyabkun.
 // This is a split-file version of the library, this file is not self-contained.
-
-// CallChain[size=11] = qUnreachable() <-[Call]- QFetchRule.SINGLE_LINE <-[Call]- QSrcCut <-[Call]-  ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal fun qUnreachable(msg: Any? = ""): Nothing {
-    QE.Unreachable.throwIt(msg)
-}
 
 // CallChain[size=12] = QE.throwIt() <-[Call]- qUnreachable() <-[Call]- QFetchRule.SINGLE_LINE <-[Ca ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal fun QE.throwIt(msg: Any? = "", e: Throwable? = null, stackDepth: Int = 0): Nothing {
@@ -40,6 +36,21 @@ internal fun QE.throwIt(msg: Any? = "", e: Throwable? = null, stackDepth: Int = 
         },
         e, stackDepth = stackDepth + 1
     )
+}
+
+// CallChain[size=21] = QE.throwItFile() <-[Call]- LineNumberReader.qFetchLinesAround() <-[Call]- Pa ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal fun QE.throwItFile(path: Path, e: Throwable? = null, stackDepth: Int = 0): Nothing {
+    throw QException(this, qBrackets("File", path.absolutePathString()), e, stackDepth = stackDepth + 1)
+}
+
+// CallChain[size=19] = QE.throwItBrackets() <-[Call]- qBrackets() <-[Call]- qMySrcLinesAtFrame() <- ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal fun QE.throwItBrackets(vararg keysAndValues: Any?, e: Throwable? = null, stackDepth: Int = 0): Nothing {
+    throw QException(this, qBrackets(*keysAndValues), e, stackDepth = stackDepth + 1)
+}
+
+// CallChain[size=11] = qUnreachable() <-[Call]- QFetchRule.SINGLE_LINE <-[Call]- QSrcCut <-[Call]-  ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal fun qUnreachable(msg: Any? = ""): Nothing {
+    QE.Unreachable.throwIt(msg)
 }
 
 // CallChain[size=13] = QException <-[Call]- QE.throwIt() <-[Call]- qUnreachable() <-[Call]- QFetchR ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
@@ -95,14 +106,11 @@ internal class QException(
     }
 }
 
-// CallChain[size=19] = QE.throwItBrackets() <-[Call]- qBrackets() <-[Call]- qMySrcLinesAtFrame() <- ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal fun QE.throwItBrackets(vararg keysAndValues: Any?, e: Throwable? = null, stackDepth: Int = 0): Nothing {
-    throw QException(this, qBrackets(*keysAndValues), e, stackDepth = stackDepth + 1)
-}
-
-// CallChain[size=21] = QE.throwItFile() <-[Call]- LineNumberReader.qFetchLinesAround() <-[Call]- Pa ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal fun QE.throwItFile(path: Path, e: Throwable? = null, stackDepth: Int = 0): Nothing {
-    throw QException(this, qBrackets("File", path.absolutePathString()), e, stackDepth = stackDepth + 1)
+// CallChain[size=7] = Boolean.qaTrue() <-[Call]- String.qWithMinAndMaxLength() <-[Call]- qSeparator ... el() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+internal fun Boolean.qaTrue(exceptionType: QE = QE.ShouldBeTrue, msg: Any? = "") {
+    if (!this) {
+        exceptionType.throwIt(stackDepth = 1, msg = msg)
+    }
 }
 
 // CallChain[size=20] = T?.qaNotNull() <-[Call]- qSrcFileAtFrame() <-[Call]- qSrcFileLinesAtFrame()  ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
@@ -122,12 +130,5 @@ internal fun Int?.qaNotZero(exceptionType: QE = QE.ShouldNotBeZero, msg: Any? = 
         exceptionType.throwIt(stackDepth = 1, msg = msg)
     } else {
         return this
-    }
-}
-
-// CallChain[size=7] = Boolean.qaTrue() <-[Call]- String.qWithMinAndMaxLength() <-[Call]- qSeparator ... el() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-internal fun Boolean.qaTrue(exceptionType: QE = QE.ShouldBeTrue, msg: Any? = "") {
-    if (!this) {
-        exceptionType.throwIt(stackDepth = 1, msg = msg)
     }
 }

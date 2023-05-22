@@ -2970,7 +2970,7 @@ private val String.noColor: String
     }
 
 // CallChain[size=17] = QShColor <-[Ref]- yellow <-[Call]- QException.qToString() <-[Call]- QExcepti ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-enum class QShColor(val code: Int) {
+private enum class QShColor(val code: Int) {
     // CallChain[size=18] = QShColor.BLACK <-[Propag]- QShColor.YELLOW <-[Call]- yellow <-[Call]- QExcep ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
     BLACK(30),
     // CallChain[size=18] = QShColor.RED <-[Propag]- QShColor.YELLOW <-[Call]- yellow <-[Call]- QExcepti ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]

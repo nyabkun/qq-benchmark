@@ -21,6 +21,9 @@ import nyab.conf.QMyPath
 // qq-benchmark is a self-contained single-file library created by nyabkun.
 // This is a split-file version of the library, this file is not self-contained.
 
+// CallChain[size=12] = qARROW <-[Call]- qArrow() <-[Call]- QLogStyle.qLogArrow() <-[Call]- QLogStyl ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+internal val qARROW = "===>".light_cyan
+
 // CallChain[size=6] = QSrcCut <-[Ref]- QException.QException() <-[Ref]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 internal class QSrcCut(
         val fetchRule: QFetchRule = QFetchRule.SINGLE_LINE,
@@ -47,52 +50,6 @@ internal class QSrcCut(
         val NOCUT_JUST_SINGLE_LINE = QSrcCut(QFetchRule.SINGLE_LINE) { it }
         
     }
-}
-
-// CallChain[size=8] = qLogStackFrames() <-[Call]- QException.mySrcAndStack <-[Call]- QException.pri ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-internal fun qLogStackFrames(
-        frames: List<StackFrame>,
-        msg: Any? = "",
-        style: QLogStyle = QLogStyle.S,
-        srcRoots: List<Path> = QMyPath.src_root,
-        srcCharset: Charset = Charsets.UTF_8,
-        srcCut: QSrcCut = QSrcCut.SINGLE_qLog_PARAM,
-        quiet: Boolean = false,
-        noColor: Boolean = false,
-): String {
-
-    var mySrc = qMySrcLinesAtFrame(frame = frames[0], srcCut = srcCut, srcRoots = srcRoots, srcCharset = srcCharset)
-
-    if (mySrc.trimStart().startsWith("}.") || mySrc.trimStart().startsWith(").") || mySrc.trimStart()
-                    .startsWith("\"\"\"")
-    ) {
-        // Maybe you want to check multiple lines
-
-        val multilineCut = QSrcCut(QFetchRule.SMART_FETCH, srcCut.cut)
-
-        mySrc = qMySrcLinesAtFrame(
-                frame = frames[0], srcCut = multilineCut, srcRoots = srcRoots, srcCharset = srcCharset
-        )
-    }
-
-    val stackTrace = if (style.stackReverseOrder) {
-        frames.reversed().joinToString("\n") { it.toString() }
-    } else {
-        frames.joinToString("\n") { it.toString() }
-    }
-
-    val output = style.template(
-            msg.qToLogString(), mySrc, qNow, stackTrace
-    )
-
-    val text = style.start + output + style.end
-
-    val finalTxt = if (noColor) text.noColor else text
-
-    if (!quiet)
-        style.out.print(finalTxt)
-
-    return if (noColor) output.noColor else output
 }
 
 // CallChain[size=9] = QLogStyle <-[Ref]- QLogStyle.SRC_AND_STACK <-[Call]- QException.mySrcAndStack ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
@@ -150,6 +107,12 @@ $stackTrace
     }
 }
 
+// CallChain[size=4] = T.qLog() <-[Call]- QOnePassStat.data <-[Call]- QOnePassStat.median <-[Call]- QBlock.timeMedian[Root]
+internal fun <T : Any?> T.qLog(stackDepth: Int = 0, quiet: Boolean = false): T {
+    qLog(qToLogString(), stackDepth = stackDepth + 1, srcCut = QSrcCut.UNTIL_qLog, quiet = quiet)
+    return this
+}
+
 // CallChain[size=9] = qMySrcLinesAtFrame() <-[Call]- qLogStackFrames() <-[Call]- QException.mySrcAn ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 internal fun qMySrcLinesAtFrame(
         frame: StackFrame,
@@ -172,81 +135,50 @@ internal fun qMySrcLinesAtFrame(
     }
 }
 
-// CallChain[size=10] = qSrcFileLinesAtFrame() <-[Call]- qMySrcLinesAtFrame() <-[Call]- qLogStackFra ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-internal fun qSrcFileLinesAtFrame(
+// CallChain[size=8] = qLogStackFrames() <-[Call]- QException.mySrcAndStack <-[Call]- QException.pri ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+internal fun qLogStackFrames(
+        frames: List<StackFrame>,
+        msg: Any? = "",
+        style: QLogStyle = QLogStyle.S,
         srcRoots: List<Path> = QMyPath.src_root,
-        pkgDirHint: String? = null,
-        charset: Charset = Charsets.UTF_8,
-        lineSeparator: QLineSeparator = QLineSeparator.LF,
-        fetchRule: QFetchRule = QFetchRule.SMART_FETCH,
-        frame: StackFrame = qStackFrame(2),
+        srcCharset: Charset = Charsets.UTF_8,
+        srcCut: QSrcCut = QSrcCut.SINGLE_qLog_PARAM,
+        quiet: Boolean = false,
+        noColor: Boolean = false,
 ): String {
-    val srcFile: Path = qSrcFileAtFrame(frame = frame, srcRoots = srcRoots, pkgDirHint = pkgDirHint)
 
-    return srcFile.qFetchLinesAround(frame.lineNumber, fetchRule, charset, lineSeparator)
-}
+    var mySrc = qMySrcLinesAtFrame(frame = frames[0], srcCut = srcCut, srcRoots = srcRoots, srcCharset = srcCharset)
 
-// CallChain[size=10] = qBrackets() <-[Call]- qMySrcLinesAtFrame() <-[Call]- qLogStackFrames() <-[Ca ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-internal fun qBrackets(vararg keysAndValues: Any?): String {
-    if (keysAndValues.size % 2 != 0) {
-        QE.ShouldBeEvenNumber.throwItBrackets("KeysAndValues.size", keysAndValues.size)
+    if (mySrc.trimStart().startsWith("}.") || mySrc.trimStart().startsWith(").") || mySrc.trimStart()
+                    .startsWith("\"\"\"")
+    ) {
+        // Maybe you want to check multiple lines
+
+        val multilineCut = QSrcCut(QFetchRule.SMART_FETCH, srcCut.cut)
+
+        mySrc = qMySrcLinesAtFrame(
+                frame = frames[0], srcCut = multilineCut, srcRoots = srcRoots, srcCharset = srcCharset
+        )
     }
 
-    return keysAndValues.asSequence().withIndex().chunked(2) { (key, value) ->
-        if (value.index != keysAndValues.size) { // last
-            key.value.toString().qBracketStartOrMiddle(value.value)
-        } else {
-            key.value.toString().qBracketEnd(value.value)
-        }
-    }.joinToString("")
-}
+    val stackTrace = if (style.stackReverseOrder) {
+        frames.reversed().joinToString("\n") { it.toString() }
+    } else {
+        frames.joinToString("\n") { it.toString() }
+    }
 
-// CallChain[size=11] = String.qBracketStartOrMiddle() <-[Call]- qBrackets() <-[Call]- qMySrcLinesAt ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-/**
- * ```
- * [key1]  value1   [key2]  value2
- * ```
- */
-private fun String.qBracketStartOrMiddle(value: Any?): String {
-    val valStr = value.qToLogString().qWithSpacePrefix(2, onlyIf = QOnlyIfStr.SingleLine).qWithSpaceSuffix(3)
-            .qWithNewLineSurround(onlyIf = QOnlyIfStr.Multiline)
+    val output = style.template(
+            msg.qToLogString(), mySrc, qNow, stackTrace
+    )
 
-    return "[$this]$valStr"
-}
+    val text = style.start + output + style.end
 
-// CallChain[size=11] = String.qBracketEnd() <-[Call]- qBrackets() <-[Call]- qMySrcLinesAtFrame() <- ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-/**
- * ```
- * [key1]  value1   [key2]  value2
- * ```
- */
-private fun String.qBracketEnd(value: Any?): String {
-    val valStr =
-            value.qToLogString().qWithSpacePrefix(2, onlyIf = QOnlyIfStr.SingleLine)
-                    .qWithNewLineSurround(onlyIf = QOnlyIfStr.Multiline)
+    val finalTxt = if (noColor) text.noColor else text
 
-    return "[$this]$valStr"
-}
+    if (!quiet)
+        style.out.print(finalTxt)
 
-// CallChain[size=11] = qArrow() <-[Call]- QLogStyle.qLogArrow() <-[Call]- QLogStyle.S <-[Call]- qLo ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-internal fun qArrow(key: Any?, value: Any?): String {
-    val keyStr = key.qToLogString()
-            .qWithNewLinePrefix(onlyIf = QOnlyIfStr.Multiline)
-            .qWithNewLineSuffix(onlyIf = QOnlyIfStr.Always)
-
-    val valStr = value.qToLogString().qWithNewLineSurround(onlyIf = QOnlyIfStr.Multiline)
-            .qWithSpacePrefix(numSpace = 2, onlyIf = QOnlyIfStr.SingleLine)
-
-    return "$keyStr$qARROW$valStr"
-}
-
-// CallChain[size=12] = qARROW <-[Call]- qArrow() <-[Call]- QLogStyle.qLogArrow() <-[Call]- QLogStyl ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-internal val qARROW = "===>".light_cyan
-
-// CallChain[size=4] = T.qLog() <-[Call]- QOnePassStat.data <-[Call]- QOnePassStat.median <-[Call]- QBlock.timeMedian[Root]
-internal fun <T : Any?> T.qLog(stackDepth: Int = 0, quiet: Boolean = false): T {
-    qLog(qToLogString(), stackDepth = stackDepth + 1, srcCut = QSrcCut.UNTIL_qLog, quiet = quiet)
-    return this
+    return if (noColor) output.noColor else output
 }
 
 // CallChain[size=5] = qLog() <-[Call]- T.qLog() <-[Call]- QOnePassStat.data <-[Call]- QOnePassStat.median <-[Call]- QBlock.timeMedian[Root]
@@ -273,4 +205,72 @@ internal fun qLog(
             quiet = quiet,
             noColor = noColor
     )
+}
+
+// CallChain[size=10] = qSrcFileLinesAtFrame() <-[Call]- qMySrcLinesAtFrame() <-[Call]- qLogStackFra ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+internal fun qSrcFileLinesAtFrame(
+        srcRoots: List<Path> = QMyPath.src_root,
+        pkgDirHint: String? = null,
+        charset: Charset = Charsets.UTF_8,
+        lineSeparator: QLineSeparator = QLineSeparator.LF,
+        fetchRule: QFetchRule = QFetchRule.SMART_FETCH,
+        frame: StackFrame = qStackFrame(2),
+): String {
+    val srcFile: Path = qSrcFileAtFrame(frame = frame, srcRoots = srcRoots, pkgDirHint = pkgDirHint)
+
+    return srcFile.qFetchLinesAround(frame.lineNumber, fetchRule, charset, lineSeparator)
+}
+
+// CallChain[size=11] = qArrow() <-[Call]- QLogStyle.qLogArrow() <-[Call]- QLogStyle.S <-[Call]- qLo ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+internal fun qArrow(key: Any?, value: Any?): String {
+    val keyStr = key.qToLogString()
+            .qWithNewLinePrefix(onlyIf = QOnlyIfStr.Multiline)
+            .qWithNewLineSuffix(onlyIf = QOnlyIfStr.Always)
+
+    val valStr = value.qToLogString().qWithNewLineSurround(onlyIf = QOnlyIfStr.Multiline)
+            .qWithSpacePrefix(numSpace = 2, onlyIf = QOnlyIfStr.SingleLine)
+
+    return "$keyStr$qARROW$valStr"
+}
+
+// CallChain[size=11] = String.qBracketEnd() <-[Call]- qBrackets() <-[Call]- qMySrcLinesAtFrame() <- ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+/**
+ * ```
+ * [key1]  value1   [key2]  value2
+ * ```
+ */
+private fun String.qBracketEnd(value: Any?): String {
+    val valStr =
+            value.qToLogString().qWithSpacePrefix(2, onlyIf = QOnlyIfStr.SingleLine)
+                    .qWithNewLineSurround(onlyIf = QOnlyIfStr.Multiline)
+
+    return "[$this]$valStr"
+}
+
+// CallChain[size=11] = String.qBracketStartOrMiddle() <-[Call]- qBrackets() <-[Call]- qMySrcLinesAt ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+/**
+ * ```
+ * [key1]  value1   [key2]  value2
+ * ```
+ */
+private fun String.qBracketStartOrMiddle(value: Any?): String {
+    val valStr = value.qToLogString().qWithSpacePrefix(2, onlyIf = QOnlyIfStr.SingleLine).qWithSpaceSuffix(3)
+            .qWithNewLineSurround(onlyIf = QOnlyIfStr.Multiline)
+
+    return "[$this]$valStr"
+}
+
+// CallChain[size=10] = qBrackets() <-[Call]- qMySrcLinesAtFrame() <-[Call]- qLogStackFrames() <-[Ca ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+internal fun qBrackets(vararg keysAndValues: Any?): String {
+    if (keysAndValues.size % 2 != 0) {
+        QE.ShouldBeEvenNumber.throwItBrackets("KeysAndValues.size", keysAndValues.size)
+    }
+
+    return keysAndValues.asSequence().withIndex().chunked(2) { (key, value) ->
+        if (value.index != keysAndValues.size) { // last
+            key.value.toString().qBracketStartOrMiddle(value.value)
+        } else {
+            key.value.toString().qBracketEnd(value.value)
+        }
+    }.joinToString("")
 }

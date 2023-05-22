@@ -24,21 +24,45 @@ import kotlin.reflect.KClass
 import nyab.conf.QE
 import nyab.conf.QMyPath
 import nyab.match.QMMethod
-import nyab.match.and
 
 // qq-benchmark is a self-contained single-file library created by nyabkun.
 // This is a split-file version of the library, this file is not self-contained.
+
+// CallChain[size=5] = AccessibleObject.qTrySetAccessible() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+internal fun AccessibleObject.qTrySetAccessible() {
+    try {
+        if (!this.trySetAccessible()) {
+            QE.TrySetAccessibleFail.throwIt(this)
+        }
+    } catch (e: SecurityException) {
+        QE.TrySetAccessibleFail.throwIt(this, e = e)
+    }
+}
 
 // CallChain[size=3] = qThisFileMainClass <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
 internal val qThisFileMainClass: Class<*>
     get() = qCallerFileMainClass()
 
-// CallChain[size=6] = Class<*>.qIsAssignableFrom() <-[Call]- QMatchMethodParams.matches() <-[Propag]- QMatchMethodParams <-[Call]- QMMethod.NoParams <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-internal fun Class<*>.qIsAssignableFrom(subclass: Class<*>, autoboxing: Boolean = true): Boolean {
-    return if (autoboxing) {
-        this.qPrimitiveToWrapper().isAssignableFrom(subclass.qPrimitiveToWrapper())
+// CallChain[size=4] = Class<*>.qMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+internal fun Class<*>.qMethods(matcher: QMMethod = QMMethod.DeclaredOnly): List<Method> {
+    val allMethods = if (matcher.declaredOnly) declaredMethods else methods
+    return allMethods.filter { matcher.matches(it) }
+}
+
+// CallChain[size=5] = Class<T>.qNewInstance() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+internal fun <T : Any> Class<T>.qNewInstance(vararg params: Any): T {
+    val constructor = qConstructor(*params, declaredOnly = false)
+    return constructor.newInstance()
+}
+
+// CallChain[size=6] = Class<T>.qConstructor() <-[Call]- Class<T>.qNewInstance() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+internal fun <T : Any> Class<T>.qConstructor(vararg params: Any, declaredOnly: Boolean = false): Constructor<T> {
+    return if (declaredOnly) {
+        this.getDeclaredConstructor(*params.map { it::class.java }.toTypedArray())
+            .qaNotNull(QE.ConstructorNotFound)
     } else {
-        this.isAssignableFrom(subclass)
+        this.getConstructor(*params.map { it::class.java }.toTypedArray())
+            .qaNotNull(QE.ConstructorNotFound)
     }
 }
 
@@ -60,43 +84,18 @@ internal val qJVMPrimitiveToWrapperMap by lazy {
     map
 }
 
-// CallChain[size=4] = Class<*>.qMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-internal fun Class<*>.qMethods(matcher: QMMethod = QMMethod.DeclaredOnly): List<Method> {
-    val allMethods = if (matcher.declaredOnly) declaredMethods else methods
-    return allMethods.filter { matcher.matches(it) }
-}
-
-// CallChain[size=5] = AccessibleObject.qTrySetAccessible() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-internal fun AccessibleObject.qTrySetAccessible() {
-    try {
-        if (!this.trySetAccessible()) {
-            QE.TrySetAccessibleFail.throwIt(this)
-        }
-    } catch (e: SecurityException) {
-        QE.TrySetAccessibleFail.throwIt(this, e = e)
+// CallChain[size=6] = Class<*>.qIsAssignableFrom() <-[Call]- QMatchMethodParams.matches() <-[Propag]- QMatchMethodParams <-[Call]- QMMethod.NoParams <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+internal fun Class<*>.qIsAssignableFrom(subclass: Class<*>, autoboxing: Boolean = true): Boolean {
+    return if (autoboxing) {
+        this.qPrimitiveToWrapper().isAssignableFrom(subclass.qPrimitiveToWrapper())
+    } else {
+        this.isAssignableFrom(subclass)
     }
 }
 
 // CallChain[size=5] = Method.qIsInstanceMethod() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
 internal fun Method.qIsInstanceMethod(): Boolean {
     return !Modifier.isStatic(this.modifiers)
-}
-
-// CallChain[size=5] = Class<T>.qNewInstance() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-internal fun <T : Any> Class<T>.qNewInstance(vararg params: Any): T {
-    val constructor = qConstructor(*params, declaredOnly = false)
-    return constructor.newInstance()
-}
-
-// CallChain[size=6] = Class<T>.qConstructor() <-[Call]- Class<T>.qNewInstance() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-internal fun <T : Any> Class<T>.qConstructor(vararg params: Any, declaredOnly: Boolean = false): Constructor<T> {
-    return if (declaredOnly) {
-        this.getDeclaredConstructor(*params.map { it::class.java }.toTypedArray())
-            .qaNotNull(QE.ConstructorNotFound)
-    } else {
-        this.getConstructor(*params.map { it::class.java }.toTypedArray())
-            .qaNotNull(QE.ConstructorNotFound)
-    }
 }
 
 // CallChain[size=4] = qCallerFileMainClass() <-[Call]- qThisFileMainClass <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]

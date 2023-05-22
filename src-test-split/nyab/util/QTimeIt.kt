@@ -17,6 +17,14 @@ import kotlin.contracts.contract
 // qq-benchmark is a self-contained single-file library created by nyabkun.
 // This is a split-file version of the library, this file is not self-contained.
 
+// CallChain[size=6] = QTimeItResult <-[Ref]- qTimeIt() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+internal class QTimeItResult<T>(val label: String, val time: Long, val result: T) {
+    // CallChain[size=6] = QTimeItResult.toString() <-[Call]- qTimeIt() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+    override fun toString(): String {
+        return qBrackets(label, time.qFormatDuration())
+    }
+}
+
 // CallChain[size=5] = QTimeAndResult <-[Call]- QBlock.timeItWarmup() <-[Propag]- QBlock <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal class QTimeAndResult(val index: Int, val time: Long, val nTry: Int = 1, val result: Any? = null) {
     // CallChain[size=5] = QTimeAndResult.str() <-[Call]- QBlock.toString() <-[Propag]- QBlock <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
@@ -48,12 +56,4 @@ internal inline fun <T> qTimeIt(label: String = qThisSrcLineSignature, quiet: Bo
         out?.println(result.toString())
 
     return result
-}
-
-// CallChain[size=6] = QTimeItResult <-[Ref]- qTimeIt() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-internal class QTimeItResult<T>(val label: String, val time: Long, val result: T) {
-    // CallChain[size=6] = QTimeItResult.toString() <-[Call]- qTimeIt() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-    override fun toString(): String {
-        return qBrackets(label, time.qFormatDuration())
-    }
 }

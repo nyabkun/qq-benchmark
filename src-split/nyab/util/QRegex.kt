@@ -15,15 +15,15 @@ import org.intellij.lang.annotations.Language
 // qq-benchmark is a self-contained single-file library created by nyabkun.
 // This is a split-file version of the library, this file is not self-contained.
 
+// CallChain[size=9] = RO <-[Ref]- qRe() <-[Call]- QException.mySrcAndStack <-[Call]- QException.pri ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+internal typealias RO = RegexOption
+
 // CallChain[size=8] = qRe() <-[Call]- QException.mySrcAndStack <-[Call]- QException.printStackTrace ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 internal fun qRe(@Language("RegExp") regex: String, vararg opts: RO): Regex {
     return qCacheItOneSecThreadLocal(regex + opts.contentToString()) {
         Regex(regex, setOf(*opts))
     }
 }
-
-// CallChain[size=9] = RO <-[Ref]- qRe() <-[Call]- QException.mySrcAndStack <-[Call]- QException.pri ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-internal typealias RO = RegexOption
 
 // CallChain[size=12] = re <-[Call]- String.qApplyColorNestable() <-[Call]- String.qColorLine() <-[C ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 // https://youtrack.jetbrains.com/issue/KTIJ-5643

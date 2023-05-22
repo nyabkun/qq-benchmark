@@ -23,6 +23,24 @@ internal fun Int.qFormat(digits: Int = 4): String {
     return String.format("%${digits}d", this)
 }
 
+// CallChain[size=3] = QUnit <-[Ref]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
+internal enum class QUnit {
+    // CallChain[size=3] = QUnit.Nano <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
+    Nano,
+    // CallChain[size=3] = QUnit.Micro <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
+    Micro,
+    // CallChain[size=3] = QUnit.Milli <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
+    Milli,
+    // CallChain[size=3] = QUnit.Second <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
+    Second,
+    // CallChain[size=3] = QUnit.Minute <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
+    Minute,
+    // CallChain[size=3] = QUnit.Hour <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
+    Hour,
+    // CallChain[size=3] = QUnit.Day <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
+    Day
+}
+
 // CallChain[size=2] = Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
 internal fun Long.qFormatDuration(unit: QUnit = QUnit.Nano): String {
     return when (unit) {
@@ -43,27 +61,19 @@ internal fun Long.qFormatDuration(unit: QUnit = QUnit.Nano): String {
     }
 }
 
+// CallChain[size=4] = Duration.qToMicrosOnlyPart() <-[Call]- Duration.qFormat() <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
+internal fun Duration.qToMicrosOnlyPart(): Int {
+    return (toNanosPart() % 1_000_000) / 1_000
+}
+
+// CallChain[size=4] = Duration.qToNanoOnlyPart() <-[Call]- Duration.qFormat() <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
+internal fun Duration.qToNanoOnlyPart(): Int {
+    return toNanosPart() % 1_000
+}
+
 // CallChain[size=2] = Double.qFormatDuration() <-[Call]- QBlock.toString()[Root]
 internal fun Double.qFormatDuration(): String =
     toLong().qFormatDuration()
-
-// CallChain[size=3] = QUnit <-[Ref]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
-internal enum class QUnit {
-    // CallChain[size=3] = QUnit.Nano <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
-    Nano,
-    // CallChain[size=3] = QUnit.Micro <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
-    Micro,
-    // CallChain[size=3] = QUnit.Milli <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
-    Milli,
-    // CallChain[size=3] = QUnit.Second <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
-    Second,
-    // CallChain[size=3] = QUnit.Minute <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
-    Minute,
-    // CallChain[size=3] = QUnit.Hour <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
-    Hour,
-    // CallChain[size=3] = QUnit.Day <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
-    Day
-}
 
 // CallChain[size=3] = Duration.qFormat() <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
 internal fun Duration.qFormat(detail: Boolean = false): String {
@@ -140,14 +150,4 @@ internal fun Duration.qFormat(detail: Boolean = false): String {
     }
 
     return parts.joinToString(" ")
-}
-
-// CallChain[size=4] = Duration.qToMicrosOnlyPart() <-[Call]- Duration.qFormat() <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
-internal fun Duration.qToMicrosOnlyPart(): Int {
-    return (toNanosPart() % 1_000_000) / 1_000
-}
-
-// CallChain[size=4] = Duration.qToNanoOnlyPart() <-[Call]- Duration.qFormat() <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
-internal fun Duration.qToNanoOnlyPart(): Int {
-    return toNanosPart() % 1_000
 }

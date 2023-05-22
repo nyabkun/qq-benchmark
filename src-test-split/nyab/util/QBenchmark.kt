@@ -18,6 +18,10 @@ import kotlin.system.measureNanoTime
 // qq-benchmark is a self-contained single-file library created by nyabkun.
 // This is a split-file version of the library, this file is not self-contained.
 
+// CallChain[size=4] = QBenchDsl <-[Call]- QBenchmark <-[Ref]- qBenchmark() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+@DslMarker
+internal annotation class QBenchDsl
+
 // CallChain[size=2] = qBenchmark() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal fun qBenchmark(action: QBenchmark.() -> Unit) {
     val scope = QBenchmark()
@@ -70,6 +74,71 @@ internal class QBenchmark {
     }
 
     
+}
+
+// CallChain[size=3] = QBenchmark.start() <-[Call]- qBenchmark() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+@Suppress("UNCHECKED_CAST")
+private fun QBenchmark.start() {
+    val blocksProp = this::class.declaredMemberProperties.find { it.name == "blocks" }!!
+        as KProperty1<QBenchmark, MutableList<QBlock>>
+
+    blocksProp.isAccessible = true
+    val blocks = blocksProp.get(this)
+
+    repeat(nWarmUpTry) {
+        for (block in blocks.shuffled()) {
+            block.timeItWarmup()
+        }
+    }
+
+    repeat(nTry) {
+        for (block in blocks.shuffled()) {
+            block.timeIt()
+        }
+    }
+
+    val result: String = blocks.joinToString("\n\n")
+
+    val formatted = result.qAlignRight("""\[2]""".re)
+        .qAlignRight("""\[3]""".re)
+        .qAlignRight("""\[10]""".re)
+        .qAlignRight("""\[100]""".re)
+        .qAlignRight("""\[1000]""".re)
+        .qAlignRight("""\[10000]""".re)
+        .qAlignRight("""\[100000]""".re)
+        .qAlignRight("""\[1000000]""".re)
+        .qAlignRight("""\[10000000]""".re)
+        .qAlignRight("""\[100000000]""".re)
+
+    out.println(formatted)
+
+    out.close()
+}
+
+// CallChain[size=3] = QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+private class QBlockLoop(
+    label: String,
+    val nSingleMeasureLoop: Int,
+    task: (callCount: Long) -> Any?,
+) : QBlock(label, { callCount ->
+    var firstResult: Any? = null
+    for (i in 1..nSingleMeasureLoop) {
+        firstResult = task(callCount * (nSingleMeasureLoop - 1) + i)
+    }
+
+    firstResult
+}) {
+    // CallChain[size=4] = QBlockLoop.timeAverage <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    override val timeAverage: Double
+        get() = timeTotal / (nMeasureTried * nSingleMeasureLoop).toDouble()
+
+    // CallChain[size=4] = QBlockLoop.timeStandardDeviation <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    override val timeStandardDeviation: Double
+        get() = stat.σ / nSingleMeasureLoop
+
+    // CallChain[size=4] = QBlockLoop.timeMedian <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    override val timeMedian: Double
+        get() = stat.median / nSingleMeasureLoop
 }
 
 // CallChain[size=3] = QBlock <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
@@ -209,72 +278,3 @@ $measureLoop"""
         return text
     }
 }
-
-// CallChain[size=3] = QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-private class QBlockLoop(
-    label: String,
-    val nSingleMeasureLoop: Int,
-    task: (callCount: Long) -> Any?,
-) : QBlock(label, { callCount ->
-    var firstResult: Any? = null
-    for (i in 1..nSingleMeasureLoop) {
-        firstResult = task(callCount * (nSingleMeasureLoop - 1) + i)
-    }
-
-    firstResult
-}) {
-    // CallChain[size=4] = QBlockLoop.timeAverage <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    override val timeAverage: Double
-        get() = timeTotal / (nMeasureTried * nSingleMeasureLoop).toDouble()
-
-    // CallChain[size=4] = QBlockLoop.timeStandardDeviation <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    override val timeStandardDeviation: Double
-        get() = stat.σ / nSingleMeasureLoop
-
-    // CallChain[size=4] = QBlockLoop.timeMedian <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    override val timeMedian: Double
-        get() = stat.median / nSingleMeasureLoop
-}
-
-// CallChain[size=3] = QBenchmark.start() <-[Call]- qBenchmark() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-@Suppress("UNCHECKED_CAST")
-private fun QBenchmark.start() {
-    val blocksProp = this::class.declaredMemberProperties.find { it.name == "blocks" }!!
-        as KProperty1<QBenchmark, MutableList<QBlock>>
-
-    blocksProp.isAccessible = true
-    val blocks = blocksProp.get(this)
-
-    repeat(nWarmUpTry) {
-        for (block in blocks.shuffled()) {
-            block.timeItWarmup()
-        }
-    }
-
-    repeat(nTry) {
-        for (block in blocks.shuffled()) {
-            block.timeIt()
-        }
-    }
-
-    val result: String = blocks.joinToString("\n\n")
-
-    val formatted = result.qAlignRight("""\[2]""".re)
-        .qAlignRight("""\[3]""".re)
-        .qAlignRight("""\[10]""".re)
-        .qAlignRight("""\[100]""".re)
-        .qAlignRight("""\[1000]""".re)
-        .qAlignRight("""\[10000]""".re)
-        .qAlignRight("""\[100000]""".re)
-        .qAlignRight("""\[1000000]""".re)
-        .qAlignRight("""\[10000000]""".re)
-        .qAlignRight("""\[100000000]""".re)
-
-    out.println(formatted)
-
-    out.close()
-}
-
-// CallChain[size=4] = QBenchDsl <-[Call]- QBenchmark <-[Ref]- qBenchmark() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-@DslMarker
-internal annotation class QBenchDsl
