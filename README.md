@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.nyabkun:qq-benchmark:v2023-05-24'
+    implementation 'com.github.nyabkun:qq-benchmark:v2023-05-22'
 }
 ```
 
@@ -46,7 +46,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.nyabkun:qq-benchmark:v2023-05-24")
+    implementation("com.github.nyabkun:qq-benchmark:v2023-05-22")
 }
 ```
 
@@ -65,7 +65,7 @@ dependencies {
     <dependency>
         <groupId>com.github.nyabkun</groupId>
         <artifactId>qq-benchmark</artifactId>
-        <version>v2023-05-24</version>
+        <version>v2023-05-22</version>
     </dependency>
 </dependencies>
 ```
