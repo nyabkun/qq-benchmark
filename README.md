@@ -5,7 +5,63 @@
 - Just copy and paste 🟦 Single-File version [QBenchmark.kt](src-single/QBenchmark.kt) into your project.- Or you can use 🟩 Split-File Jar version. See [Maven Dependency Section](#-split-file-jar-version-maven-dependency).
 - Feel free to fork or copy to your own codebase.
 
+## Example
 
+### output
+<p align="center">
+    
+</p>
+<p align="center">
+    <img src="img/result.png" width="886" alt="result.png">
+</p>
+
+### code
+
+Full Source  [QBenchmarkExample.kt](src-example/QBenchmarkExample.kt)
+
+```kotlin
+qBenchmark {
+    // Number of trials
+    nTry = 500
+
+    // If this instance has several [block]s, it will shuffle them in randomized order and measure the time.
+    // [nSingleMeasureLoop] represents how many times a block is executed in one measurement.
+    // Eventually, the code snippet in the [block] will be executed [nSingleMeasureLoop] * [nTry] times.
+    nSingleMeasureLoop = 5
+
+    // In the early executions, the execution of the [block] takes more time,
+    // so we first perform some executions which are not counted in the measurements.
+    nWarmUpTry = 50
+
+    block("Raw String Concat") {
+        var str = ""
+        for (i in 1..3000) {
+            str += i.toString()
+        }
+        str
+    }
+
+    block("StringBuilder") {
+        val sb = StringBuilder()
+        for (i in 1..3000) {
+            sb.append(i.toString())
+        }
+        sb.toString()
+    }
+
+    block("StringBuffer") {
+        val sb = StringBuffer()
+        for (i in 1..3000) {
+            sb.append(i.toString())
+        }
+        sb.toString()
+    }
+}
+```
+
+Please see [QBenchmarkTest.kt](src-test-split/nyab/util/QBenchmarkTest.kt) for more code examples.
+Single-File version [src-test-single/QBenchmarkTest.kt](src-test-single/QBenchmarkTest.kt) is a self-contained source code that includes a runnable main function.
+You can easily copy and paste it into your codebase.        
 
 ## 🟦 Single-File version Dependency
 
@@ -34,7 +90,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.nyabkun:qq-benchmark:v2023-05-22'
+    implementation 'com.github.nyabkun:qq-benchmark:v2023-05-24'
 }
 ```
 
@@ -46,7 +102,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.nyabkun:qq-benchmark:v2023-05-22")
+    implementation("com.github.nyabkun:qq-benchmark:v2023-05-24")
 }
 ```
 
@@ -65,7 +121,7 @@ dependencies {
     <dependency>
         <groupId>com.github.nyabkun</groupId>
         <artifactId>qq-benchmark</artifactId>
-        <version>v2023-05-22</version>
+        <version>v2023-05-24</version>
     </dependency>
 </dependencies>
 ```
