@@ -90,7 +90,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.nyabkun:qq-benchmark:v2023-05-24'
+    implementation 'com.github.nyabkun:qq-benchmark:v2023-05-28'
 }
 ```
 
@@ -102,7 +102,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.nyabkun:qq-benchmark:v2023-05-24")
+    implementation("com.github.nyabkun:qq-benchmark:v2023-05-28")
 }
 ```
 
@@ -121,14 +121,14 @@ dependencies {
     <dependency>
         <groupId>com.github.nyabkun</groupId>
         <artifactId>qq-benchmark</artifactId>
-        <version>v2023-05-24</version>
+        <version>v2023-05-28</version>
     </dependency>
 </dependencies>
 ```
 
 ## How did I create this library
 
-- I developed [qq-compact-lib](https://github.com/nyabkun/qq-compact-lib) that resolves dependencies and generates compact, self-contained libraries.
+- This library was created using [qq-compact-lib](https://github.com/nyabkun/qq-compact-lib) to generates compact, self-contained libraries.
 - It utilizes [PSI](https://plugins.jetbrains.com/docs/intellij/psi.html) to resolve function calls and class references.
 - The original repository is currently being organized, and I'm gradually extracting and publishing smaller libraries.
 
