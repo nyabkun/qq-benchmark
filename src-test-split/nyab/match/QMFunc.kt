@@ -19,10 +19,10 @@ import nyab.util.QFlagEnum
 // qq-benchmark is a self-contained single-file library created by nyabkun.
 // This is a split-file version of the library, this file is not self-contained.
 
-// CallChain[size=12] = qAnd() <-[Call]- QMFunc.and() <-[Call]- qToStringRegistry <-[Call]- Any?.qTo ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+// CallChain[size=12] = qAnd() <-[Call]- QMFunc.and() <-[Call]- qToStringRegistry <-[Call]- Any.qToS ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 private fun qAnd(vararg matches: QMFunc): QMFunc = QMatchFuncAnd(*matches)
 
-// CallChain[size=11] = QMFunc.and() <-[Call]- qToStringRegistry <-[Call]- Any?.qToString() <-[Call] ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+// CallChain[size=11] = QMFunc.and() <-[Call]- qToStringRegistry <-[Call]- Any.qToString() <-[Call]- ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal infix fun QMFunc.and(match: QMFunc): QMFunc {
     return if (this is QMatchFuncAnd) {
         QMatchFuncAnd(*matchList, match)
@@ -112,10 +112,10 @@ internal interface QMFunc {
     fun isNone(): Boolean = this == QMatchFuncNone
 
     companion object {
-        // CallChain[size=11] = QMFunc.DeclaredOnly <-[Call]- qToStringRegistry <-[Call]- Any?.qToString() < ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+        // CallChain[size=11] = QMFunc.DeclaredOnly <-[Call]- qToStringRegistry <-[Call]- Any.qToString() <- ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
         val DeclaredOnly: QMFunc = QMatchFuncDeclaredOnly
 
-        // CallChain[size=11] = QMFunc.IncludeExtensionsInClass <-[Call]- qToStringRegistry <-[Call]- Any?.q ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+        // CallChain[size=11] = QMFunc.IncludeExtensionsInClass <-[Call]- qToStringRegistry <-[Call]- Any.qT ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
         // TODO OnlyExtensionsInClass
         val IncludeExtensionsInClass: QMFunc = QMatchFuncIncludeExtensionsInClass
 
@@ -124,7 +124,7 @@ internal interface QMFunc {
         // TODO vararg, nullability, param names, type parameter
         // TODO handle createType() more carefully
 
-        // CallChain[size=11] = QMFunc.nameExact() <-[Call]- qToStringRegistry <-[Call]- Any?.qToString() <- ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+        // CallChain[size=11] = QMFunc.nameExact() <-[Call]- qToStringRegistry <-[Call]- Any.qToString() <-[ ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
         fun nameExact(text: String, ignoreCase: Boolean = false): QMFunc {
             return QMatchFuncName(QM.exact(text, ignoreCase = ignoreCase))
         }

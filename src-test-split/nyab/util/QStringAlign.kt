@@ -221,7 +221,7 @@ internal class QLineMatchResult(
     }
 }
 
-// CallChain[size=8] = qSize <-[Call]- QLineMatchResult.align() <-[Call]- String.qAlign() <-[Call]-  ... ing() <-[Propag]- QBlock <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+// CallChain[size=8] = IntRange.qSize <-[Call]- QLineMatchResult.align() <-[Call]- String.qAlign() < ... ing() <-[Propag]- QBlock <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 private val IntRange.qSize: Int
     get() = abs(last - first) + 1
 

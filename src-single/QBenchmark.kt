@@ -341,9 +341,9 @@ private enum class QMyException {
 
     // CallChain[size=12] = QMyException.Unreachable <-[Call]- qUnreachable() <-[Call]- QFetchRule.SINGL ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     Unreachable,
-    // CallChain[size=13] = QMyException.ShouldNotBeNull <-[Call]- T?.qaNotNull() <-[Call]- qSrcFileAtFr ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=13] = QMyException.ShouldNotBeNull <-[Call]- T.qaNotNull() <-[Call]- qSrcFileAtFra ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     ShouldNotBeNull,
-    // CallChain[size=8] = QMyException.ShouldNotBeZero <-[Call]- Int?.qaNotZero() <-[Call]- CharSequenc ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=8] = QMyException.ShouldNotBeZero <-[Call]- Int.qaNotZero() <-[Call]- CharSequence ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     ShouldNotBeZero,
     // CallChain[size=11] = QMyException.ShouldBeEvenNumber <-[Call]- qBrackets() <-[Call]- qMySrcLinesA ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     ShouldBeEvenNumber,
@@ -366,7 +366,7 @@ private object QMyLog {
      */
     val out: QOut = QOut.CONSOLE
 
-    // CallChain[size=6] = QMyLog.no_format <-[Call]- Any?.qToLogString() <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=6] = QMyLog.no_format <-[Call]- Any.qToLogString() <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     var no_format: Boolean = false
 }
 
@@ -424,7 +424,7 @@ private object QMyPath {
     // -- files
 }
 
-// CallChain[size=8] = QMyToString <-[Call]- qToStringRegistry <-[Call]- Any?.qToString() <-[Call]-  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=8] = QMyToString <-[Call]- qToStringRegistry <-[Call]- Any.qToString() <-[Call]- A ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private object QMyToString {
     
 }
@@ -523,10 +523,10 @@ private class QStartsWithMatch(val textStartsWith: String, val ignoreCase: Boole
     }
 }
 
-// CallChain[size=9] = qAnd() <-[Call]- QMFunc.and() <-[Call]- qToStringRegistry <-[Call]- Any?.qToS ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=9] = qAnd() <-[Call]- QMFunc.and() <-[Call]- qToStringRegistry <-[Call]- Any.qToSt ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private fun qAnd(vararg matches: QMFunc): QMFunc = QMatchFuncAnd(*matches)
 
-// CallChain[size=8] = QMFunc.and() <-[Call]- qToStringRegistry <-[Call]- Any?.qToString() <-[Call]- ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=8] = QMFunc.and() <-[Call]- qToStringRegistry <-[Call]- Any.qToString() <-[Call]-  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private infix fun QMFunc.and(match: QMFunc): QMFunc {
     return if (this is QMatchFuncAnd) {
         QMatchFuncAnd(*matchList, match)
@@ -616,10 +616,10 @@ private interface QMFunc {
     fun isNone(): Boolean = this == QMatchFuncNone
 
     companion object {
-        // CallChain[size=8] = QMFunc.DeclaredOnly <-[Call]- qToStringRegistry <-[Call]- Any?.qToString() <- ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+        // CallChain[size=8] = QMFunc.DeclaredOnly <-[Call]- qToStringRegistry <-[Call]- Any.qToString() <-[ ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
         val DeclaredOnly: QMFunc = QMatchFuncDeclaredOnly
 
-        // CallChain[size=8] = QMFunc.IncludeExtensionsInClass <-[Call]- qToStringRegistry <-[Call]- Any?.qT ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+        // CallChain[size=8] = QMFunc.IncludeExtensionsInClass <-[Call]- qToStringRegistry <-[Call]- Any.qTo ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
         // TODO OnlyExtensionsInClass
         val IncludeExtensionsInClass: QMFunc = QMatchFuncIncludeExtensionsInClass
 
@@ -628,7 +628,7 @@ private interface QMFunc {
         // TODO vararg, nullability, param names, type parameter
         // TODO handle createType() more carefully
 
-        // CallChain[size=8] = QMFunc.nameExact() <-[Call]- qToStringRegistry <-[Call]- Any?.qToString() <-[ ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+        // CallChain[size=8] = QMFunc.nameExact() <-[Call]- qToStringRegistry <-[Call]- Any.qToString() <-[C ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
         fun nameExact(text: String, ignoreCase: Boolean = false): QMFunc {
             return QMatchFuncName(QM.exact(text, ignoreCase = ignoreCase))
         }
@@ -807,7 +807,7 @@ private class QException(
     }
 }
 
-// CallChain[size=12] = T?.qaNotNull() <-[Call]- qSrcFileAtFrame() <-[Call]- qSrcFileLinesAtFrame()  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=12] = T.qaNotNull() <-[Call]- qSrcFileAtFrame() <-[Call]- qSrcFileLinesAtFrame() < ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private fun <T : Any> T?.qaNotNull(exceptionType: QE = QE.ShouldNotBeNull, msg: Any? = ""): T {
     if (this != null) {
         return this
@@ -816,7 +816,7 @@ private fun <T : Any> T?.qaNotNull(exceptionType: QE = QE.ShouldNotBeNull, msg: 
     }
 }
 
-// CallChain[size=7] = Int?.qaNotZero() <-[Call]- CharSequence.qMask() <-[Call]- Any?.qToLogString() ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=7] = Int.qaNotZero() <-[Call]- CharSequence.qMask() <-[Call]- Any.qToLogString() < ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private fun Int?.qaNotZero(exceptionType: QE = QE.ShouldNotBeZero, msg: Any? = ""): Int {
     if (this == null) {
         QE.ShouldNotBeNull.throwIt(stackDepth = 1, msg = msg)
@@ -1999,7 +1999,7 @@ private class QConsole(override val isAcceptColoredText: Boolean) : QOut {
     }
 }
 
-// CallChain[size=8] = KClass<*>.qFunctions() <-[Call]- qToStringRegistry <-[Call]- Any?.qToString() ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=8] = KClass<*>.qFunctions() <-[Call]- qToStringRegistry <-[Call]- Any.qToString()  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private fun KClass<*>.qFunctions(matcher: QMFunc = QMFunc.DeclaredOnly and QMFunc.IncludeExtensionsInClass): List<KFunction<*>> {
     val list = mutableListOf<KFunction<*>>()
 
@@ -2086,7 +2086,7 @@ private fun KType.qToClass(): KClass<*>? {
     }
 }
 
-// CallChain[size=8] = KType.qIsSuperclassOf() <-[Call]- qToStringRegistry <-[Call]- Any?.qToString( ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=8] = KType.qIsSuperclassOf() <-[Call]- qToStringRegistry <-[Call]- Any.qToString() ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private fun KType.qIsSuperclassOf(cls: KClass<*>): Boolean {
     return try {
         val thisClass = qToClass()
@@ -2112,7 +2112,7 @@ private fun qRe(@Language("RegExp") regex: String, vararg opts: RO): Regex {
     }
 }
 
-// CallChain[size=15] = re <-[Call]- noStyle <-[Call]- QConsole.print() <-[Propag]- QConsole <-[Call ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=15] = @receiver:Language("RegExp") String.re <-[Call]- String.noStyle <-[Call]- QC ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 // https://youtrack.jetbrains.com/issue/KTIJ-5643
 private val @receiver:Language("RegExp") String.re: Regex
     get() = qRe(this)
@@ -2175,12 +2175,6 @@ private fun String.qApplyEscapeLine(
 
     return text
 }
-
-// CallChain[size=14] = noStyle <-[Call]- QConsole.print() <-[Propag]- QConsole <-[Call]- QOut.CONSO ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-private val String.noStyle: String
-    get() {
-        return this.replace("""\Q$qSTART\E\d{1,2}m""".re, "")
-    }
 
 // CallChain[size=8] = QShColor <-[Ref]- QException.mySrcAndStack <-[Call]- QException.printStackTra ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private enum class QShColor(val code: Int) {
@@ -2250,43 +2244,49 @@ private fun String.qColorTarget(ptn: Regex, fg: QShColor? = null, bg: QShColor? 
     return ptn.replace(this, "$0".qColor(fg, bg))
 }
 
-// CallChain[size=2] = red <-[Call]- QBlock.toString()[Root]
+// CallChain[size=2] = String.red <-[Call]- QBlock.toString()[Root]
 private val String?.red: String
     get() = this?.qColor(QShColor.Red) ?: "null".qColor(QShColor.Red)
 
-// CallChain[size=2] = green <-[Call]- QBlock.toString()[Root]
+// CallChain[size=2] = String.green <-[Call]- QBlock.toString()[Root]
 private val String?.green: String
     get() = this?.qColor(QShColor.Green) ?: "null".qColor(QShColor.Green)
 
-// CallChain[size=2] = yellow <-[Call]- QBlock.toString()[Root]
+// CallChain[size=2] = String.yellow <-[Call]- QBlock.toString()[Root]
 private val String?.yellow: String
     get() = this?.qColor(QShColor.Yellow) ?: "null".qColor(QShColor.Yellow)
 
-// CallChain[size=2] = blue <-[Call]- QBlock.toString()[Root]
+// CallChain[size=2] = String.blue <-[Call]- QBlock.toString()[Root]
 private val String?.blue: String
     get() = this?.qColor(QShColor.Blue) ?: "null".qColor(QShColor.Blue)
 
-// CallChain[size=10] = cyan <-[Call]- QLogStyle <-[Ref]- QLogStyle.SRC_AND_STACK <-[Call]- QExcepti ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=10] = String.cyan <-[Call]- QLogStyle <-[Ref]- QLogStyle.SRC_AND_STACK <-[Call]- Q ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private val String?.cyan: String
     get() = this?.qColor(QShColor.Cyan) ?: "null".qColor(QShColor.Cyan)
 
-// CallChain[size=5] = light_gray <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=5] = String.light_gray <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private val String?.light_gray: String
     get() = this?.qColor(QShColor.LightGray) ?: "null".qColor(QShColor.LightGray)
 
-// CallChain[size=2] = dark_gray <-[Call]- QBlock.toString()[Root]
+// CallChain[size=2] = String.dark_gray <-[Call]- QBlock.toString()[Root]
 private val String?.dark_gray: String
     get() = this?.qColor(QShColor.DarkGray) ?: "null".qColor(QShColor.DarkGray)
 
-// CallChain[size=11] = light_green <-[Call]- QLogStyle.qLogArrow() <-[Call]- QLogStyle.S <-[Call]-  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=11] = String.light_green <-[Call]- QLogStyle.qLogArrow() <-[Call]- QLogStyle.S <-[ ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private val String?.light_green: String
     get() = this?.qColor(QShColor.LightGreen) ?: "null".qColor(QShColor.LightGreen)
 
-// CallChain[size=13] = light_cyan <-[Call]- qARROW <-[Call]- qArrow() <-[Call]- QLogStyle.qLogArrow ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=13] = String.light_cyan <-[Call]- qARROW <-[Call]- qArrow() <-[Call]- QLogStyle.qL ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private val String?.light_cyan: String
     get() = this?.qColor(QShColor.LightCyan) ?: "null".qColor(QShColor.LightCyan)
 
-// CallChain[size=10] = path <-[Call]- QMyPath.src_root <-[Call]- qLogStackFrames() <-[Call]- QExcep ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=14] = String.noStyle <-[Call]- QConsole.print() <-[Propag]- QConsole <-[Call]- QOu ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+private val String.noStyle: String
+    get() {
+        return this.replace("""\Q$qSTART\E\d{1,2}m""".re, "")
+    }
+
+// CallChain[size=10] = String.path <-[Call]- QMyPath.src_root <-[Call]- qLogStackFrames() <-[Call]- ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private val String.path: Path
     get() = Paths.get(this.trim()).toAbsolutePath().normalize()
 
@@ -2413,13 +2413,13 @@ private fun String.qCountLeftSpace(): Int = takeWhile { it == ' ' }.count()
 // CallChain[size=6] = String.qCountRightSpace() <-[Call]- String.qMoveCenter() <-[Call]- QLineMatch ... gn() <-[Call]- String.qAlign() <-[Call]- String.qAlignRightAll() <-[Call]- QBlock.toString()[Root]
 private fun String.qCountRightSpace(): Int = takeLastWhile { it == ' ' }.count()
 
-// CallChain[size=6] = qMASK_LENGTH_LIMIT <-[Call]- Any?.qToLogString() <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=6] = qMASK_LENGTH_LIMIT <-[Call]- Any.qToLogString() <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private const val qMASK_LENGTH_LIMIT: Int = 100_000
 
-// CallChain[size=8] = QToString <-[Ref]- qToStringRegistry <-[Call]- Any?.qToString() <-[Call]- Any ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=8] = QToString <-[Ref]- qToStringRegistry <-[Call]- Any.qToString() <-[Call]- Any. ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private class QToString(val okToApply: (Any) -> Boolean, val toString: (Any) -> String)
 
-// CallChain[size=7] = qToStringRegistry <-[Call]- Any?.qToString() <-[Call]- Any?.qToLogString() <- ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=7] = qToStringRegistry <-[Call]- Any.qToString() <-[Call]- Any.qToLogString() <-[C ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private val qToStringRegistry: MutableList<QToString> by lazy {
     val toStrings =
             QMyToString::class.qFunctions(
@@ -2442,7 +2442,7 @@ private val qToStringRegistry: MutableList<QToString> by lazy {
     }.toMutableList()
 }
 
-// CallChain[size=6] = Any?.qToString() <-[Call]- Any?.qToLogString() <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=6] = Any.qToString() <-[Call]- Any.qToLogString() <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private fun Any?.qToString(): String {
     if (this == null)
         return "null".light_gray
@@ -2456,7 +2456,7 @@ private fun Any?.qToString(): String {
     return toString()
 }
 
-// CallChain[size=5] = Any?.qToLogString() <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=5] = Any.qToLogString() <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private fun Any?.qToLogString(maxLineLength: Int = 80): String {
     if (QMyLog.no_format) {
         return this.toString()
@@ -2499,7 +2499,7 @@ private fun Any?.qToLogString(maxLineLength: Int = 80): String {
     }.qClarifyEmptyOrBlank()
 }
 
-// CallChain[size=6] = String.qClarifyEmptyOrBlank() <-[Call]- Any?.qToLogString() <-[Call]- QE.thro ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=6] = String.qClarifyEmptyOrBlank() <-[Call]- Any.qToLogString() <-[Call]- QE.throw ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private fun String.qClarifyEmptyOrBlank(): String {
     return if (this.isEmpty()) {
         "(EMPTY STRING)".qColor(QShColor.LightGray)
@@ -2716,7 +2716,7 @@ private class QLineMatchResult(
     }
 }
 
-// CallChain[size=5] = qSize <-[Call]- QLineMatchResult.align() <-[Call]- String.qAlign() <-[Call]- String.qAlignRightAll() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=5] = IntRange.qSize <-[Call]- QLineMatchResult.align() <-[Call]- String.qAlign() <-[Call]- String.qAlignRightAll() <-[Call]- QBlock.toString()[Root]
 private val IntRange.qSize: Int
     get() = abs(last - first) + 1
 
@@ -2935,11 +2935,11 @@ private fun String.qCountOccurrence(word: String): Int {
 
 // CallChain[size=9] = QMask <-[Ref]- QMaskBetween <-[Call]- QMask.DOUBLE_QUOTE <-[Call]- QMask.KOTL ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private interface QMask {
-    // CallChain[size=7] = QMask.apply() <-[Propag]- QMask.KOTLIN_STRING <-[Call]- Any?.qToLogString() < ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=7] = QMask.apply() <-[Propag]- QMask.KOTLIN_STRING <-[Call]- Any.qToLogString() <- ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     fun apply(text: String): QMaskResult
 
     companion object {
-        // CallChain[size=7] = QMask.THREE_DOUBLE_QUOTES <-[Call]- QMask.KOTLIN_STRING <-[Call]- Any?.qToLog ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+        // CallChain[size=7] = QMask.THREE_DOUBLE_QUOTES <-[Call]- QMask.KOTLIN_STRING <-[Call]- Any.qToLogS ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
         val THREE_DOUBLE_QUOTES by lazy {
             QMaskBetween(
                 "\"\"\"", "\"\"\"",
@@ -2948,7 +2948,7 @@ private interface QMask {
                 maskIncludeStartAndEndSequence = false,
             )
         }
-        // CallChain[size=7] = QMask.DOUBLE_QUOTE <-[Call]- QMask.KOTLIN_STRING <-[Call]- Any?.qToLogString( ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+        // CallChain[size=7] = QMask.DOUBLE_QUOTE <-[Call]- QMask.KOTLIN_STRING <-[Call]- Any.qToLogString() ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
         val DOUBLE_QUOTE by lazy {
             QMaskBetween(
                 "\"", "\"",
@@ -2957,21 +2957,21 @@ private interface QMask {
                 maskIncludeStartAndEndSequence = false,
             )
         }
-        // CallChain[size=6] = QMask.KOTLIN_STRING <-[Call]- Any?.qToLogString() <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+        // CallChain[size=6] = QMask.KOTLIN_STRING <-[Call]- Any.qToLogString() <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
         val KOTLIN_STRING by lazy {
             QMultiMask(
                 THREE_DOUBLE_QUOTES,
                 DOUBLE_QUOTE
             )
         }
-        // CallChain[size=6] = QMask.PARENS <-[Call]- Any?.qToLogString() <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+        // CallChain[size=6] = QMask.PARENS <-[Call]- Any.qToLogString() <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
         val PARENS by lazy {
             QMaskBetween(
                 "(", ")",
                 nestStartSequence = "(", escapeChar = '\\'
             )
         }
-        // CallChain[size=6] = QMask.INNER_BRACKETS <-[Call]- Any?.qToLogString() <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+        // CallChain[size=6] = QMask.INNER_BRACKETS <-[Call]- Any.qToLogString() <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
         val INNER_BRACKETS by lazy {
             QMaskBetween(
                 "[", "]",
@@ -2985,7 +2985,7 @@ private interface QMask {
     }
 }
 
-// CallChain[size=7] = QMultiMask <-[Call]- QMask.KOTLIN_STRING <-[Call]- Any?.qToLogString() <-[Cal ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=7] = QMultiMask <-[Call]- QMask.KOTLIN_STRING <-[Call]- Any.qToLogString() <-[Call ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private class QMultiMask(vararg mask: QMaskBetween) : QMask {
     // CallChain[size=9] = QMultiMask.masks <-[Call]- QMultiMask.apply() <-[Propag]- QMultiMask <-[Call] ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     val masks: Array<QMaskBetween>
@@ -3171,7 +3171,7 @@ private class QReplacer(start: Int, end: Int, val replacement: String) : QMutReg
 
 // CallChain[size=8] = QMaskResult <-[Ref]- QMask.apply() <-[Propag]- QMask.KOTLIN_STRING <-[Call]-  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private class QMaskResult(val maskedStr: String, val orgText: String, val maskChar: Char) {
-    // CallChain[size=6] = QMaskResult.replaceAndUnmask() <-[Call]- Any?.qToLogString() <-[Call]- QE.thr ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=6] = QMaskResult.replaceAndUnmask() <-[Call]- Any.qToLogString() <-[Call]- QE.thro ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     /**
      * Apply regex to masked string.
      * Apply replacement to original text.
@@ -3194,7 +3194,7 @@ private class QMaskResult(val maskedStr: String, val orgText: String, val maskCh
     }
 }
 
-// CallChain[size=6] = CharSequence.qMask() <-[Call]- Any?.qToLogString() <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=6] = CharSequence.qMask() <-[Call]- Any.qToLogString() <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private fun CharSequence.qMask(vararg mask: QMask): QMaskResult {
     mask.size.qaNotZero()
 

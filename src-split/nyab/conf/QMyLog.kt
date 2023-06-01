@@ -23,6 +23,6 @@ internal object QMyLog {
      */
     val out: QOut = QOut.CONSOLE
 
-    // CallChain[size=6] = QMyLog.no_format <-[Call]- Any?.qToLogString() <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=6] = QMyLog.no_format <-[Call]- Any.qToLogString() <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     var no_format: Boolean = false
 }

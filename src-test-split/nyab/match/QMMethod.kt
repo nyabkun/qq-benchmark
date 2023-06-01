@@ -19,7 +19,7 @@ import nyab.util.qIsAssignableFrom
 // qq-benchmark is a self-contained single-file library created by nyabkun.
 // This is a split-file version of the library, this file is not self-contained.
 
-// CallChain[size=5] = not <-[Call]- QMMethod.notAnnotation() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+// CallChain[size=5] = QMMethod.not <-[Call]- QMMethod.notAnnotation() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
 private val QMMethod.not: QMMethod
     get() = QMatchMethodNot(this)
 
@@ -47,9 +47,9 @@ internal infix fun QMMethod.or(match: QMMethod): QMMethod {
     }
 }
 
-// CallChain[size=6] = QMatchMethodNot <-[Call]- not <-[Call]- QMMethod.notAnnotation() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+// CallChain[size=6] = QMatchMethodNot <-[Call]- QMMethod.not <-[Call]- QMMethod.notAnnotation() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
 private class QMatchMethodNot(val matcher: QMMethod) : QMMethodA() {
-    // CallChain[size=7] = QMatchMethodNot.matches() <-[Propag]- QMatchMethodNot <-[Call]- not <-[Call]- QMMethod.notAnnotation() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+    // CallChain[size=7] = QMatchMethodNot.matches() <-[Propag]- QMatchMethodNot <-[Call]- QMMethod.not  ... ll]- QMMethod.notAnnotation() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
     override fun matches(value: Method): Boolean = !matcher.matches(value)
 }
 

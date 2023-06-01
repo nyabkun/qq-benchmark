@@ -11,6 +11,7 @@
 package nyab.util
 
 import java.nio.charset.Charset
+import java.util.*
 import kotlin.math.min
 import kotlin.reflect.full.extensionReceiverParameter
 import kotlin.reflect.full.isSuperclassOf
@@ -195,13 +196,13 @@ internal fun String.qCountLeftSpace(): Int = takeWhile { it == ' ' }.count()
 // CallChain[size=9] = String.qCountRightSpace() <-[Call]- String.qMoveCenter() <-[Call]- QLineMatch ... ing() <-[Propag]- QBlock <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal fun String.qCountRightSpace(): Int = takeLastWhile { it == ' ' }.count()
 
-// CallChain[size=9] = qMASK_LENGTH_LIMIT <-[Call]- Any?.qToLogString() <-[Call]- T.qLog() <-[Call]- ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+// CallChain[size=9] = qMASK_LENGTH_LIMIT <-[Call]- Any.qToLogString() <-[Call]- T.qLog() <-[Call]-  ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal const val qMASK_LENGTH_LIMIT: Int = 100_000
 
-// CallChain[size=11] = QToString <-[Ref]- qToStringRegistry <-[Call]- Any?.qToString() <-[Call]- An ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+// CallChain[size=11] = QToString <-[Ref]- qToStringRegistry <-[Call]- Any.qToString() <-[Call]- Any ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal class QToString(val okToApply: (Any) -> Boolean, val toString: (Any) -> String)
 
-// CallChain[size=10] = qToStringRegistry <-[Call]- Any?.qToString() <-[Call]- Any?.qToLogString() < ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+// CallChain[size=10] = qToStringRegistry <-[Call]- Any.qToString() <-[Call]- Any.qToLogString() <-[ ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 private val qToStringRegistry: MutableList<QToString> by lazy {
     val toStrings =
             QMyToString::class.qFunctions(
@@ -224,7 +225,7 @@ private val qToStringRegistry: MutableList<QToString> by lazy {
     }.toMutableList()
 }
 
-// CallChain[size=9] = Any?.qToString() <-[Call]- Any?.qToLogString() <-[Call]- T.qLog() <-[Call]- Q ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+// CallChain[size=9] = Any.qToString() <-[Call]- Any.qToLogString() <-[Call]- T.qLog() <-[Call]- QOn ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal fun Any?.qToString(): String {
     if (this == null)
         return "null".light_gray
@@ -238,7 +239,7 @@ internal fun Any?.qToString(): String {
     return toString()
 }
 
-// CallChain[size=8] = Any?.qToLogString() <-[Call]- T.qLog() <-[Call]- QOnePassStat.data <-[Call]-  ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+// CallChain[size=8] = Any.qToLogString() <-[Call]- T.qLog() <-[Call]- QOnePassStat.data <-[Call]- Q ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal fun Any?.qToLogString(maxLineLength: Int = 80): String {
     if (QMyLog.no_format) {
         return this.toString()
@@ -281,7 +282,7 @@ internal fun Any?.qToLogString(maxLineLength: Int = 80): String {
     }.qClarifyEmptyOrBlank()
 }
 
-// CallChain[size=9] = String.qClarifyEmptyOrBlank() <-[Call]- Any?.qToLogString() <-[Call]- T.qLog( ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+// CallChain[size=9] = String.qClarifyEmptyOrBlank() <-[Call]- Any.qToLogString() <-[Call]- T.qLog() ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal fun String.qClarifyEmptyOrBlank(): String {
     return if (this.isEmpty()) {
         "(EMPTY STRING)".qColor(QShColor.LightGray)

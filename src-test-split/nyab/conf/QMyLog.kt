@@ -23,6 +23,6 @@ internal object QMyLog {
      */
     val out: QOut = QOut.CONSOLE
 
-    // CallChain[size=9] = QMyLog.no_format <-[Call]- Any?.qToLogString() <-[Call]- T.qLog() <-[Call]- Q ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    // CallChain[size=9] = QMyLog.no_format <-[Call]- Any.qToLogString() <-[Call]- T.qLog() <-[Call]- QO ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
     var no_format: Boolean = false
 }

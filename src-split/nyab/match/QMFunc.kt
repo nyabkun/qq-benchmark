@@ -19,10 +19,10 @@ import nyab.util.QFlagEnum
 // qq-benchmark is a self-contained single-file library created by nyabkun.
 // This is a split-file version of the library, this file is not self-contained.
 
-// CallChain[size=9] = qAnd() <-[Call]- QMFunc.and() <-[Call]- qToStringRegistry <-[Call]- Any?.qToS ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=9] = qAnd() <-[Call]- QMFunc.and() <-[Call]- qToStringRegistry <-[Call]- Any.qToSt ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private fun qAnd(vararg matches: QMFunc): QMFunc = QMatchFuncAnd(*matches)
 
-// CallChain[size=8] = QMFunc.and() <-[Call]- qToStringRegistry <-[Call]- Any?.qToString() <-[Call]- ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=8] = QMFunc.and() <-[Call]- qToStringRegistry <-[Call]- Any.qToString() <-[Call]-  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 internal infix fun QMFunc.and(match: QMFunc): QMFunc {
     return if (this is QMatchFuncAnd) {
         QMatchFuncAnd(*matchList, match)
@@ -112,10 +112,10 @@ internal interface QMFunc {
     fun isNone(): Boolean = this == QMatchFuncNone
 
     companion object {
-        // CallChain[size=8] = QMFunc.DeclaredOnly <-[Call]- qToStringRegistry <-[Call]- Any?.qToString() <- ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+        // CallChain[size=8] = QMFunc.DeclaredOnly <-[Call]- qToStringRegistry <-[Call]- Any.qToString() <-[ ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
         val DeclaredOnly: QMFunc = QMatchFuncDeclaredOnly
 
-        // CallChain[size=8] = QMFunc.IncludeExtensionsInClass <-[Call]- qToStringRegistry <-[Call]- Any?.qT ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+        // CallChain[size=8] = QMFunc.IncludeExtensionsInClass <-[Call]- qToStringRegistry <-[Call]- Any.qTo ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
         // TODO OnlyExtensionsInClass
         val IncludeExtensionsInClass: QMFunc = QMatchFuncIncludeExtensionsInClass
 
@@ -124,7 +124,7 @@ internal interface QMFunc {
         // TODO vararg, nullability, param names, type parameter
         // TODO handle createType() more carefully
 
-        // CallChain[size=8] = QMFunc.nameExact() <-[Call]- qToStringRegistry <-[Call]- Any?.qToString() <-[ ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+        // CallChain[size=8] = QMFunc.nameExact() <-[Call]- qToStringRegistry <-[Call]- Any.qToString() <-[C ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
         fun nameExact(text: String, ignoreCase: Boolean = false): QMFunc {
             return QMatchFuncName(QM.exact(text, ignoreCase = ignoreCase))
         }

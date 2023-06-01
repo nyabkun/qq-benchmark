@@ -80,7 +80,7 @@ internal data class QTestResultElement(val method: Method, val cause: Throwable?
         get() = cause == null
 }
 
-// CallChain[size=6] = allTestedMethods <-[Call]- QTestResult.printIt() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+// CallChain[size=6] = List<QTestResultElement>.allTestedMethods <-[Call]- QTestResult.printIt() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
 internal val List<QTestResultElement>.allTestedMethods: String
     get() =
         "\n[${"Tested".light_blue}]\n" +

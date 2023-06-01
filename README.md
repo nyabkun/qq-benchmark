@@ -69,13 +69,13 @@ You can easily copy and paste it into your codebase.
 
 ## Public API
 
-- `qBenchmark()` *Function* [📄 jump to code](src-split/nyab/util/QBenchmark.kt#L25-L32)
-- `QBenchmark` *Class* [📄 jump to code](src-split/nyab/util/QBenchmark.kt#L34-L83)
+- [`qBenchmark()`](src-split/nyab/util/QBenchmark.kt#L25-L32) *function*
+- [`QBenchmark`](src-split/nyab/util/QBenchmark.kt#L34-L83) *class*
 
 ## Single-File version Dependency
 
 If you copy & paste [QBenchmark.kt](src-single/QBenchmark.kt),
-Refer to [build.gradle.kts](build.gradle.kts) to directly check project settings.
+fefer to [build.gradle.kts](build.gradle.kts) to directly check project settings.
 
 
 
@@ -89,7 +89,7 @@ dependencies {
 ## Jar version Maven Dependency
 
 If you prefer a jar library,
-add [jitpack.io](https://jitpack.io/#nyabkun/qq-benchmark) repository to your build settings.
+you can use [jitpack.io](https://jitpack.io/#nyabkun/qq-benchmark) repository.
 
 ### build.gradle ( Groovy )
 ```groovy
@@ -99,7 +99,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.nyabkun:qq-benchmark:v2023-06-01'
+    implementation 'com.github.nyabkun:qq-benchmark:v2023-05-28'
 }
 ```
 
@@ -111,7 +111,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.nyabkun:qq-benchmark:v2023-06-01")
+    implementation("com.github.nyabkun:qq-benchmark:v2023-05-28")
 }
 ```
 
@@ -130,7 +130,7 @@ dependencies {
     <dependency>
         <groupId>com.github.nyabkun</groupId>
         <artifactId>qq-benchmark</artifactId>
-        <version>v2023-06-01</version>
+        <version>v2023-05-28</version>
     </dependency>
 </dependencies>
 ```

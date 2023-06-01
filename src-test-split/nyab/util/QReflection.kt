@@ -58,7 +58,7 @@ internal fun Method.qName(withParenthesis: Boolean = false): String {
     }
 }
 
-// CallChain[size=11] = KClass<*>.qFunctions() <-[Call]- qToStringRegistry <-[Call]- Any?.qToString( ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+// CallChain[size=11] = KClass<*>.qFunctions() <-[Call]- qToStringRegistry <-[Call]- Any.qToString() ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal fun KClass<*>.qFunctions(matcher: QMFunc = QMFunc.DeclaredOnly and QMFunc.IncludeExtensionsInClass): List<KFunction<*>> {
     val list = mutableListOf<KFunction<*>>()
 
@@ -182,7 +182,7 @@ internal fun KType.qToClass(): KClass<*>? {
     }
 }
 
-// CallChain[size=11] = KType.qIsSuperclassOf() <-[Call]- qToStringRegistry <-[Call]- Any?.qToString ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+// CallChain[size=11] = KType.qIsSuperclassOf() <-[Call]- qToStringRegistry <-[Call]- Any.qToString( ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal fun KType.qIsSuperclassOf(cls: KClass<*>): Boolean {
     return try {
         val thisClass = qToClass()

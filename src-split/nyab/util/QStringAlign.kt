@@ -221,7 +221,7 @@ internal class QLineMatchResult(
     }
 }
 
-// CallChain[size=5] = qSize <-[Call]- QLineMatchResult.align() <-[Call]- String.qAlign() <-[Call]- String.qAlignRightAll() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=5] = IntRange.qSize <-[Call]- QLineMatchResult.align() <-[Call]- String.qAlign() <-[Call]- String.qAlignRightAll() <-[Call]- QBlock.toString()[Root]
 private val IntRange.qSize: Int
     get() = abs(last - first) + 1
 

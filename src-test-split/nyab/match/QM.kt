@@ -16,16 +16,16 @@ package nyab.match
 // CallChain[size=22] = String.qMatches() <-[Call]- Path.qFind() <-[Call]- Collection<Path>.qFind()  ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal fun String.qMatches(matcher: QM): Boolean = matcher.matches(this)
 
-// CallChain[size=5] = not <-[Call]- QM.notExact() <-[Call]- QMMethod.nameNotExact() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+// CallChain[size=5] = QM.not <-[Call]- QM.notExact() <-[Call]- QMMethod.nameNotExact() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
 private val QM.not: QM
     get() = QMatchNot(this)
 
-// CallChain[size=6] = QMatchNot <-[Call]- not <-[Call]- QM.notExact() <-[Call]- QMMethod.nameNotExact() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+// CallChain[size=6] = QMatchNot <-[Call]- QM.not <-[Call]- QM.notExact() <-[Call]- QMMethod.nameNotExact() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
 private class QMatchNot(val matcher: QM) : QM {
-    // CallChain[size=7] = QMatchNot.matches() <-[Propag]- QMatchNot <-[Call]- not <-[Call]- QM.notExact() <-[Call]- QMMethod.nameNotExact() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+    // CallChain[size=7] = QMatchNot.matches() <-[Propag]- QMatchNot <-[Call]- QM.not <-[Call]- QM.notExact() <-[Call]- QMMethod.nameNotExact() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
     override fun matches(text: String): Boolean = !matcher.matches(text)
 
-    // CallChain[size=7] = QMatchNot.toString() <-[Propag]- QMatchNot <-[Call]- not <-[Call]- QM.notExact() <-[Call]- QMMethod.nameNotExact() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+    // CallChain[size=7] = QMatchNot.toString() <-[Propag]- QMatchNot <-[Call]- QM.not <-[Call]- QM.notExact() <-[Call]- QMMethod.nameNotExact() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
     override fun toString(): String {
         return this::class.simpleName.toString() + "(matcher=$matcher)"
     }

@@ -13,7 +13,7 @@ package nyab.conf
 // qq-benchmark is a self-contained single-file library created by nyabkun.
 // This is a split-file version of the library, this file is not self-contained.
 
-// CallChain[size=11] = QMyToString <-[Call]- qToStringRegistry <-[Call]- Any?.qToString() <-[Call]- ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+// CallChain[size=11] = QMyToString <-[Call]- qToStringRegistry <-[Call]- Any.qToString() <-[Call]-  ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal object QMyToString {
     
 }

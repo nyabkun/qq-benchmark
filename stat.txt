@@ -3,7 +3,7 @@ Version: v2023-06-01
 # Public API [main]
 qBenchmark() - Function
 QBenchmark - Class
-QOut - Interface (Chained)
+QOut (Chained) - Interface
 
 # single src file number of lines [main]
 3631
@@ -35,7 +35,7 @@ QException.QException() [KtPrimaryConstructor] <Second Level> : 271
 QException.printStackTrace() [KtNamedFunction] <Second Level> : 239
          QException.mySrcAndStack [KtProperty] <Second Level> : 238
               qLogStackFrames() [KtNamedFunction] <Top Level> : 163
-            Any?.qToLogString() [KtNamedFunction] <Top Level> : 124
+             Any.qToLogString() [KtNamedFunction] <Top Level> : 124
            qMySrcLinesAtFrame() [KtNamedFunction] <Top Level> :  98
 
 # chain node hit count [test]

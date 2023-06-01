@@ -25,7 +25,7 @@ internal fun qRe(@Language("RegExp") regex: String, vararg opts: RO): Regex {
     }
 }
 
-// CallChain[size=15] = re <-[Call]- noStyle <-[Call]- QConsole.print() <-[Propag]- QConsole <-[Call ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=15] = @receiver:Language("RegExp") String.re <-[Call]- String.noStyle <-[Call]- QC ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 // https://youtrack.jetbrains.com/issue/KTIJ-5643
 internal val @receiver:Language("RegExp") String.re: Regex
     get() = qRe(this)
