@@ -20,7 +20,7 @@ import kotlin.system.measureNanoTime
 
 // CallChain[size=4] = QBenchDsl <-[Call]- QBenchmark <-[Ref]- qBenchmark() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 @DslMarker
-internal annotation class QBenchDsl
+private annotation class QBenchDsl
 
 // CallChain[size=2] = qBenchmark() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal fun qBenchmark(action: QBenchmark.() -> Unit) {

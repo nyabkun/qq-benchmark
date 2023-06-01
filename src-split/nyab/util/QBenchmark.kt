@@ -20,7 +20,7 @@ import kotlin.system.measureNanoTime
 
 // << Root of the CallChain >>
 @DslMarker
-annotation class QBenchDsl
+private annotation class QBenchDsl
 
 // << Root of the CallChain >>
 fun qBenchmark(action: QBenchmark.() -> Unit) {

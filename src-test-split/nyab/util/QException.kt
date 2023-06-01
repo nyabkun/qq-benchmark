@@ -14,12 +14,12 @@ package nyab.util
 
 import java.io.PrintStream
 import java.nio.file.Path
-import java.util.*
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
 import nyab.conf.QE
 import nyab.conf.QMyMark
+import nyab.conf.qSTACK_FRAME_FILTER
 import nyab.match.QM
 
 // qq-benchmark is a self-contained single-file library created by nyabkun.
@@ -56,11 +56,11 @@ internal fun qUnreachable(msg: Any? = ""): Nothing {
 // CallChain[size=13] = QException <-[Call]- QE.throwIt() <-[Call]- qUnreachable() <-[Call]- QFetchR ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal class QException(
     val type: QE = QE.Other,
-    msg: String = QMyMark.WARN,
+    msg: String = QMyMark.warn,
     e: Throwable? = null,
     val stackDepth: Int = 0,
     stackSize: Int = 20,
-    stackFilter: (StackWalker.StackFrame) -> Boolean = QE.STACK_FRAME_FILTER,
+    stackFilter: (StackWalker.StackFrame) -> Boolean = qSTACK_FRAME_FILTER,
     private val srcCut: QSrcCut = QSrcCut.MULTILINE_NOCUT,
 ) : RuntimeException(msg, e) {
 
@@ -75,7 +75,7 @@ internal class QException(
     // CallChain[size=15] = QException.mySrcAndStack <-[Call]- QException.printStackTrace() <-[Propag]-  ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
     val mySrcAndStack: String by lazy {
         qLogStackFrames(frames = stackFrames, style = QLogStyle.SRC_AND_STACK, srcCut = srcCut, quiet = true)
-            .qColorTarget(qRe("""\sshould[a-zA-Z]+"""), QShColor.LIGHT_YELLOW)
+            .qColorTarget(qRe("""\sshould[a-zA-Z]+"""), QShColor.LightYellow)
     }
 
     // CallChain[size=14] = QException.getStackTrace() <-[Propag]- QException.QException() <-[Ref]- QE.t ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]

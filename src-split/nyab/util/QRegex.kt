@@ -25,18 +25,7 @@ internal fun qRe(@Language("RegExp") regex: String, vararg opts: RO): Regex {
     }
 }
 
-// CallChain[size=12] = re <-[Call]- String.qApplyColorNestable() <-[Call]- String.qColorLine() <-[C ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=15] = re <-[Call]- noStyle <-[Call]- QConsole.print() <-[Propag]- QConsole <-[Call ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 // https://youtrack.jetbrains.com/issue/KTIJ-5643
 internal val @receiver:Language("RegExp") String.re: Regex
     get() = qRe(this)
-
-// CallChain[size=12] = String.qReplaceFirstIfNonEmptyStringGroup() <-[Call]- String.qApplyColorNest ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-internal fun String.qReplaceFirstIfNonEmptyStringGroup(@Language("RegExp") regex: String, nonEmptyGroupIdx: Int, replace: String = "$1", vararg opts: RO): String {
-    val re = qRe(regex, *opts)
-
-    return if (re.find(this)?.groups?.get(nonEmptyGroupIdx)?.value?.isNotEmpty() == true) {
-        re.replaceFirst(this, replace)
-    } else {
-        this
-    }
-}

@@ -37,23 +37,19 @@ internal enum class QMyException {
     LineNumberExceedsMaximum,
     // CallChain[size=4] = QMyException.IllegalArgument <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     IllegalArgument;
-    companion object {
-        // Required to implement extended functions.
+    
+}
 
-        // CallChain[size=6] = QMyException.STACK_FRAME_FILTER <-[Call]- QException.QException() <-[Ref]- QE ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-        val STACK_FRAME_FILTER: (StackWalker.StackFrame) -> Boolean = {
-            !it.className.startsWith("org.gradle") &&
-                !it.className.startsWith("org.testng") &&
-                !it.className.startsWith("worker.org.gradle") &&
-                !it.methodName.endsWith("\$default") && it.fileName != null &&
+// CallChain[size=6] = qSTACK_FRAME_FILTER <-[Call]- QException.QException() <-[Ref]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+internal val qSTACK_FRAME_FILTER: (StackWalker.StackFrame) -> Boolean = {
+    !it.className.startsWith("org.gradle") &&
+            !it.className.startsWith("org.testng") &&
+            !it.className.startsWith("worker.org.gradle") &&
+            !it.methodName.endsWith("\$default") && it.fileName != null &&
 //            && !it.className.startsWith(QException::class.qualifiedName!!)
 //            && it.methodName != "invokeSuspend"
-                it.declaringClass != null
+            it.declaringClass != null
 //            && it.declaringClass.canonicalName != null
 //            && !it.declaringClass.canonicalName.startsWith("kotlin.coroutines.jvm.internal.")
 //            && !it.declaringClass.canonicalName.startsWith("kotlinx.coroutines")
-        }
-
-        
-    }
 }

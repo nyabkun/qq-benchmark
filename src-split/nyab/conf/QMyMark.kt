@@ -16,8 +16,9 @@ import nyab.util.yellow
 // This is a split-file version of the library, this file is not self-contained.
 
 // CallChain[size=6] = QMyMark <-[Ref]- QException.QException() <-[Ref]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+@Suppress("MayBeConstant")
 internal object QMyMark {
-    // CallChain[size=6] = QMyMark.WARN <-[Call]- QException.QException() <-[Ref]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    val WARN = "⚠".yellow
+    // CallChain[size=6] = QMyMark.warn <-[Call]- QException.QException() <-[Ref]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    val warn = "⚠".yellow
     
 }

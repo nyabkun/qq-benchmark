@@ -36,6 +36,7 @@ import kotlin.io.path.isSymbolicLink
 import kotlin.io.path.name
 import kotlin.io.path.reader
 import kotlin.math.abs
+import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -63,7 +64,7 @@ import org.intellij.lang.annotations.Language
 
 // << Root of the CallChain >>
 @DslMarker
-annotation class QBenchDsl
+private annotation class QBenchDsl
 
 // << Root of the CallChain >>
 fun qBenchmark(action: QBenchmark.() -> Unit) {
@@ -354,25 +355,7 @@ private enum class QMyException {
     LineNumberExceedsMaximum,
     // CallChain[size=4] = QMyException.IllegalArgument <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     IllegalArgument;
-    companion object {
-        // Required to implement extended functions.
-
-        // CallChain[size=6] = QMyException.STACK_FRAME_FILTER <-[Call]- QException.QException() <-[Ref]- QE ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-        val STACK_FRAME_FILTER: (StackWalker.StackFrame) -> Boolean = {
-            !it.className.startsWith("org.gradle") &&
-                !it.className.startsWith("org.testng") &&
-                !it.className.startsWith("worker.org.gradle") &&
-                !it.methodName.endsWith("\$default") && it.fileName != null &&
-//            && !it.className.startsWith(QException::class.qualifiedName!!)
-//            && it.methodName != "invokeSuspend"
-                it.declaringClass != null
-//            && it.declaringClass.canonicalName != null
-//            && !it.declaringClass.canonicalName.startsWith("kotlin.coroutines.jvm.internal.")
-//            && !it.declaringClass.canonicalName.startsWith("kotlinx.coroutines")
-        }
-
-        
-    }
+    
 }
 
 // CallChain[size=10] = QMyLog <-[Ref]- QLogStyle <-[Ref]- QLogStyle.SRC_AND_STACK <-[Call]- QExcept ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
@@ -388,9 +371,10 @@ private object QMyLog {
 }
 
 // CallChain[size=6] = QMyMark <-[Ref]- QException.QException() <-[Ref]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+@Suppress("MayBeConstant")
 private object QMyMark {
-    // CallChain[size=6] = QMyMark.WARN <-[Call]- QException.QException() <-[Ref]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    val WARN = "⚠".yellow
+    // CallChain[size=6] = QMyMark.warn <-[Call]- QException.QException() <-[Ref]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    val warn = "⚠".yellow
     
 }
 
@@ -447,6 +431,20 @@ private object QMyToString {
 
 // CallChain[size=4] = QE <-[Ref]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private typealias QE = QMyException
+
+// CallChain[size=6] = qSTACK_FRAME_FILTER <-[Call]- QException.QException() <-[Ref]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+private val qSTACK_FRAME_FILTER: (StackWalker.StackFrame) -> Boolean = {
+    !it.className.startsWith("org.gradle") &&
+            !it.className.startsWith("org.testng") &&
+            !it.className.startsWith("worker.org.gradle") &&
+            !it.methodName.endsWith("\$default") && it.fileName != null &&
+//            && !it.className.startsWith(QException::class.qualifiedName!!)
+//            && it.methodName != "invokeSuspend"
+            it.declaringClass != null
+//            && it.declaringClass.canonicalName != null
+//            && !it.declaringClass.canonicalName.startsWith("kotlin.coroutines.jvm.internal.")
+//            && !it.declaringClass.canonicalName.startsWith("kotlinx.coroutines")
+}
 
 // CallChain[size=14] = String.qMatches() <-[Call]- Path.qFind() <-[Call]- Collection<Path>.qFind()  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private fun String.qMatches(matcher: QM): Boolean = matcher.matches(this)
@@ -759,11 +757,11 @@ private fun qUnreachable(msg: Any? = ""): Nothing {
 // CallChain[size=5] = QException <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private class QException(
     val type: QE = QE.Other,
-    msg: String = QMyMark.WARN,
+    msg: String = QMyMark.warn,
     e: Throwable? = null,
     val stackDepth: Int = 0,
     stackSize: Int = 20,
-    stackFilter: (StackWalker.StackFrame) -> Boolean = QE.STACK_FRAME_FILTER,
+    stackFilter: (StackWalker.StackFrame) -> Boolean = qSTACK_FRAME_FILTER,
     private val srcCut: QSrcCut = QSrcCut.MULTILINE_NOCUT,
 ) : RuntimeException(msg, e) {
 
@@ -778,7 +776,7 @@ private class QException(
     // CallChain[size=7] = QException.mySrcAndStack <-[Call]- QException.printStackTrace() <-[Propag]- Q ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     val mySrcAndStack: String by lazy {
         qLogStackFrames(frames = stackFrames, style = QLogStyle.SRC_AND_STACK, srcCut = srcCut, quiet = true)
-            .qColorTarget(qRe("""\sshould[a-zA-Z]+"""), QShColor.LIGHT_YELLOW)
+            .qColorTarget(qRe("""\sshould[a-zA-Z]+"""), QShColor.LightYellow)
     }
 
     // CallChain[size=6] = QException.getStackTrace() <-[Propag]- QException.QException() <-[Ref]- QE.th ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
@@ -1487,7 +1485,7 @@ private fun Long.qFormatDuration(unit: QUnit = QUnit.Nano): String {
         QUnit.Milli ->
             Duration.ofMillis(this).qFormat()
         QUnit.Micro ->
-            Duration.ofNanos(this).qFormat()
+            Duration.ofNanos(this * 1000).qFormat()
         QUnit.Nano ->
             Duration.ofNanos(this).qFormat()
         QUnit.Second ->
@@ -1517,6 +1515,10 @@ private fun Double.qFormatDuration(): String =
 
 // CallChain[size=3] = Duration.qFormat() <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString()[Root]
 private fun Duration.qFormat(detail: Boolean = false): String {
+    if(this.isZero) {
+        return "0"
+    }
+
     val du = abs()
 
     val maxUnit: QUnit = du.let {
@@ -1639,9 +1641,9 @@ private class QLogStyle(
             if (!onlyIf.matches(this))
                 return this
 
-            return """${"SRC START ―――――――――――".qColor(QShColor.CYAN)}
+            return """${"SRC START ―――――――――――".qColor(QShColor.Cyan)}
 ${this.trim()}
-${"SRC END   ―――――――――――".qColor(QShColor.CYAN)}"""
+${"SRC END   ―――――――――――".qColor(QShColor.Cyan)}"""
         }
 
         // CallChain[size=10] = QLogStyle.qLogArrow() <-[Call]- QLogStyle.S <-[Call]- qLogStackFrames() <-[C ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
@@ -1702,7 +1704,7 @@ private fun qMySrcLinesAtFrame(
         src2
     } catch (e: Exception) {
 //        e.message
-        "${QMyMark.WARN} Couldn't cut src lines : ${qBrackets("FileName", frame.fileName, "LineNo", frame.lineNumber, "SrcRoots", srcRoots)}"
+        "${QMyMark.warn} Couldn't cut src lines : ${qBrackets("FileName", frame.fileName, "LineNo", frame.lineNumber, "SrcRoots", srcRoots)}"
     }
 }
 
@@ -1744,12 +1746,12 @@ private fun qLogStackFrames(
 
     val text = style.start + output + style.end
 
-    val finalTxt = if (noColor) text.noColor else text
+    val finalTxt = if (noColor) text.noStyle else text
 
     if (!quiet)
         style.out.print(finalTxt)
 
-    return if (noColor) output.noColor else output
+    return if (noColor) output.noStyle else output
 }
 
 // CallChain[size=5] = qLog() <-[Call]- T.qLog() <-[Call]- QOnePassStat.data <-[Call]- QOnePassStat.median <-[Call]- QBlock.timeMedian[Root]
@@ -1982,7 +1984,7 @@ private class QConsole(override val isAcceptColoredText: Boolean) : QOut {
         if (isAcceptColoredText) {
             kotlin.io.print(msg.toString())
         } else {
-            kotlin.io.print(msg.toString().noColor)
+            kotlin.io.print(msg.toString().noStyle)
         }
     }
 
@@ -2060,7 +2062,7 @@ private fun qSrcFileAtFrame(frame: StackFrame, srcRoots: List<Path> = QMyPath.sr
 private inline fun qStackFrames(
         stackDepth: Int = 0,
         size: Int = 1,
-        noinline filter: (StackFrame) -> Boolean = QE.STACK_FRAME_FILTER,
+        noinline filter: (StackFrame) -> Boolean = qSTACK_FRAME_FILTER,
 ): List<StackFrame> {
     return StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).walk { s: Stream<StackFrame> ->
         s.asSequence().filter(filter).drop(stackDepth).take(size).toList()
@@ -2070,7 +2072,7 @@ private inline fun qStackFrames(
 // CallChain[size=11] = qStackFrame() <-[Call]- qSrcFileLinesAtFrame() <-[Call]- qMySrcLinesAtFrame( ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private inline fun qStackFrame(
         stackDepth: Int = 0,
-        noinline filter: (StackFrame) -> Boolean = QE.STACK_FRAME_FILTER,
+        noinline filter: (StackFrame) -> Boolean = qSTACK_FRAME_FILTER,
 ): StackFrame {
     return qStackFrames(stackDepth, 1, filter)[0]
 }
@@ -2110,198 +2112,179 @@ private fun qRe(@Language("RegExp") regex: String, vararg opts: RO): Regex {
     }
 }
 
-// CallChain[size=12] = re <-[Call]- String.qApplyColorNestable() <-[Call]- String.qColorLine() <-[C ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=15] = re <-[Call]- noStyle <-[Call]- QConsole.print() <-[Propag]- QConsole <-[Call ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 // https://youtrack.jetbrains.com/issue/KTIJ-5643
 private val @receiver:Language("RegExp") String.re: Regex
     get() = qRe(this)
 
-// CallChain[size=12] = String.qReplaceFirstIfNonEmptyStringGroup() <-[Call]- String.qApplyColorNest ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-private fun String.qReplaceFirstIfNonEmptyStringGroup(@Language("RegExp") regex: String, nonEmptyGroupIdx: Int, replace: String = "$1", vararg opts: RO): String {
-    val re = qRe(regex, *opts)
-
-    return if (re.find(this)?.groups?.get(nonEmptyGroupIdx)?.value?.isNotEmpty() == true) {
-        re.replaceFirst(this, replace)
-    } else {
-        this
-    }
-}
-
-// CallChain[size=12] = qBG_JUMP <-[Call]- QShColor.bg <-[Call]- String.qColorLine() <-[Call]- Strin ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=10] = qBG_JUMP <-[Call]- QShColor.bg <-[Propag]- QShColor.LightYellow <-[Call]- QE ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private const val qBG_JUMP = 10
 
-// CallChain[size=10] = qSTART <-[Call]- String.qColor() <-[Call]- String.qColorTarget() <-[Call]- Q ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=10] = qSTART <-[Call]- QShColor.bg <-[Propag]- QShColor.LightYellow <-[Call]- QExc ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private const val qSTART = "\u001B["
 
-// CallChain[size=11] = qEND <-[Call]- String.qColorLine() <-[Call]- String.qColor() <-[Call]- Strin ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=12] = qEND <-[Call]- String.qApplyEscapeLine() <-[Call]- String.qApplyEscapeLine() ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private const val qEND = "${qSTART}0m"
 
-// CallChain[size=12] = qMASK_COLORED <-[Call]- String.qApplyColorNestable() <-[Call]- String.qColor ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-private val qMASK_COLORED by lazy {
-    QMaskBetween(
-        qSTART,
-        qEND,
-        qSTART,
-        escapeChar = '\\',
-        targetNestDepth = 1,
-        maskIncludeStartAndEndSequence = false
-    )
-}
+// CallChain[size=12] = String.qApplyEscapeNestable() <-[Call]- String.qApplyEscapeLine() <-[Call]-  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+private fun String.qApplyEscapeNestable(start: String): String {
+    val lastEnd = this.endsWith(qEND)
 
-// CallChain[size=11] = String.qApplyColorNestable() <-[Call]- String.qColorLine() <-[Call]- String. ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-private fun String.qApplyColorNestable(colorStart: String): String {
-    val re = "(?s)(\\Q$qEND\\E)(.+?)(\\Q$qSTART\\E|$)".re
-    val replace = "$1$colorStart$2$qEND$3"
-    val re2 = "^(?s)(.*?)(\\Q$qSTART\\E)"
-    val replace2 = "$colorStart$1$qEND$2"
-
-    return this.qMaskAndReplace(
-        qMASK_COLORED,
-        re,
-        replace
-    ).qReplaceFirstIfNonEmptyStringGroup(re2, 1, replace2)
+    return if( lastEnd ) {
+            start + this.substring(0, this.length - 1).replace(qEND, qEND + start) + this[this.length - 1]
+        } else {
+            start + this.replace(qEND, qEND + start) + qEND
+        }
 }
 
 // CallChain[size=9] = String.qColor() <-[Call]- String.qColorTarget() <-[Call]- QException.mySrcAnd ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private fun String.qColor(fg: QShColor? = null, bg: QShColor? = null, nestable: Boolean = this.contains(qSTART)): String {
     return if (this.qIsSingleLine()) {
-        this.qColorLine(fg, bg, nestable)
+        this.qApplyEscapeLine(fg, bg, nestable)
     } else {
         lineSequence().map { line ->
-            line.qColorLine(fg, bg, nestable)
+            line.qApplyEscapeLine(fg, bg, nestable)
         }.joinToString("\n")
     }
 }
 
-// CallChain[size=10] = String.qColorLine() <-[Call]- String.qColor() <-[Call]- String.qColorTarget( ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-private fun String.qColorLine(
-    fg: QShColor? = null,
-    bg: QShColor? = null,
-    nestable: Boolean = true,
+// CallChain[size=10] = String.qApplyEscapeLine() <-[Call]- String.qColor() <-[Call]- String.qColorT ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+private fun String.qApplyEscapeLine(fg: QShColor?, bg: QShColor?, nestable: Boolean): String {
+    return this.qApplyEscapeLine(
+        listOfNotNull(fg?.fg, bg?.bg).toTypedArray(),
+        nestable
+    )
+}
+
+// CallChain[size=11] = String.qApplyEscapeLine() <-[Call]- String.qApplyEscapeLine() <-[Call]- Stri ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+private fun String.qApplyEscapeLine(
+    startSequences: Array<String>,
+    nestable: Boolean
 ): String {
     val nest = nestable && this.contains(qEND)
 
-    val fgApplied = if (fg != null) {
-        val fgStart = fg.fg
+    var text = this
 
-        if (nest) {
-            this.qApplyColorNestable(fgStart)
+    for (start in startSequences) {
+        text = if (nest) {
+            text.qApplyEscapeNestable(start)
         } else {
-            "$fgStart$this$qEND"
+            "$start$text$qEND"
         }
-    } else {
-        this
     }
 
-    val bgApplied = if (bg != null) {
-        val bgStart = bg.bg
-
-        if (nest) {
-            fgApplied.qApplyColorNestable(bgStart)
-        } else {
-            "$bgStart$fgApplied$qEND"
-        }
-    } else {
-        fgApplied
-    }
-
-    return bgApplied
+    return text
 }
 
-// CallChain[size=14] = noColor <-[Call]- QConsole.print() <-[Propag]- QConsole <-[Call]- QOut.CONSO ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-private val String.noColor: String
+// CallChain[size=14] = noStyle <-[Call]- QConsole.print() <-[Propag]- QConsole <-[Call]- QOut.CONSO ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+private val String.noStyle: String
     get() {
         return this.replace("""\Q$qSTART\E\d{1,2}m""".re, "")
     }
 
 // CallChain[size=8] = QShColor <-[Ref]- QException.mySrcAndStack <-[Call]- QException.printStackTra ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private enum class QShColor(val code: Int) {
-    // CallChain[size=9] = QShColor.BLACK <-[Propag]- QShColor.LIGHT_YELLOW <-[Call]- QException.mySrcAn ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    BLACK(30),
-    // CallChain[size=9] = QShColor.RED <-[Propag]- QShColor.LIGHT_YELLOW <-[Call]- QException.mySrcAndS ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    RED(31),
-    // CallChain[size=9] = QShColor.GREEN <-[Propag]- QShColor.LIGHT_YELLOW <-[Call]- QException.mySrcAn ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    GREEN(32),
-    // CallChain[size=9] = QShColor.YELLOW <-[Propag]- QShColor.LIGHT_YELLOW <-[Call]- QException.mySrcA ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    YELLOW(33),
-    // CallChain[size=9] = QShColor.BLUE <-[Propag]- QShColor.LIGHT_YELLOW <-[Call]- QException.mySrcAnd ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    BLUE(34),
-    // CallChain[size=9] = QShColor.MAGENTA <-[Propag]- QShColor.LIGHT_YELLOW <-[Call]- QException.mySrc ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    MAGENTA(35),
-    // CallChain[size=9] = QShColor.CYAN <-[Propag]- QShColor.LIGHT_YELLOW <-[Call]- QException.mySrcAnd ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    CYAN(36),
-    // CallChain[size=9] = QShColor.LIGHT_GRAY <-[Propag]- QShColor.LIGHT_YELLOW <-[Call]- QException.my ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    LIGHT_GRAY(37),
+    // CallChain[size=9] = QShColor.Black <-[Propag]- QShColor.LightYellow <-[Call]- QException.mySrcAnd ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    Black(30),
+    // CallChain[size=9] = QShColor.Red <-[Propag]- QShColor.LightYellow <-[Call]- QException.mySrcAndSt ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    Red(31),
+    // CallChain[size=9] = QShColor.Green <-[Propag]- QShColor.LightYellow <-[Call]- QException.mySrcAnd ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    Green(32),
+    // CallChain[size=9] = QShColor.Yellow <-[Propag]- QShColor.LightYellow <-[Call]- QException.mySrcAn ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    Yellow(33),
+    // CallChain[size=9] = QShColor.Blue <-[Propag]- QShColor.LightYellow <-[Call]- QException.mySrcAndS ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    Blue(34),
+    // CallChain[size=9] = QShColor.Purple <-[Propag]- QShColor.LightYellow <-[Call]- QException.mySrcAn ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    Purple(35),
+    // CallChain[size=9] = QShColor.Cyan <-[Propag]- QShColor.LightYellow <-[Call]- QException.mySrcAndS ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    Cyan(36),
+    // CallChain[size=9] = QShColor.LightGray <-[Propag]- QShColor.LightYellow <-[Call]- QException.mySr ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    LightGray(37),
 
-    // CallChain[size=9] = QShColor.DARK_GRAY <-[Propag]- QShColor.LIGHT_YELLOW <-[Call]- QException.myS ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    DARK_GRAY(90),
-    // CallChain[size=9] = QShColor.LIGHT_RED <-[Propag]- QShColor.LIGHT_YELLOW <-[Call]- QException.myS ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    LIGHT_RED(91),
-    // CallChain[size=9] = QShColor.LIGHT_GREEN <-[Propag]- QShColor.LIGHT_YELLOW <-[Call]- QException.m ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    LIGHT_GREEN(92),
-    // CallChain[size=8] = QShColor.LIGHT_YELLOW <-[Call]- QException.mySrcAndStack <-[Call]- QException ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    LIGHT_YELLOW(93),
-    // CallChain[size=9] = QShColor.LIGHT_BLUE <-[Propag]- QShColor.LIGHT_YELLOW <-[Call]- QException.my ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    LIGHT_BLUE(94),
-    // CallChain[size=9] = QShColor.LIGHT_MAGENTA <-[Propag]- QShColor.LIGHT_YELLOW <-[Call]- QException ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    LIGHT_MAGENTA(95),
-    // CallChain[size=9] = QShColor.LIGHT_CYAN <-[Propag]- QShColor.LIGHT_YELLOW <-[Call]- QException.my ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    LIGHT_CYAN(96),
-    // CallChain[size=9] = QShColor.WHITE <-[Propag]- QShColor.LIGHT_YELLOW <-[Call]- QException.mySrcAn ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    WHITE(97);
+    // CallChain[size=9] = QShColor.DefaultFG <-[Propag]- QShColor.LightYellow <-[Call]- QException.mySr ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    DefaultFG(39),
+    // CallChain[size=9] = QShColor.DefaultBG <-[Propag]- QShColor.LightYellow <-[Call]- QException.mySr ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    DefaultBG(49),
 
-    // CallChain[size=11] = QShColor.fg <-[Call]- String.qColorLine() <-[Call]- String.qColor() <-[Call] ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    /** ANSI modifier string to apply the color to the text itself */
+    // CallChain[size=9] = QShColor.DarkGray <-[Propag]- QShColor.LightYellow <-[Call]- QException.mySrc ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    DarkGray(90),
+    // CallChain[size=9] = QShColor.LightRed <-[Propag]- QShColor.LightYellow <-[Call]- QException.mySrc ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    LightRed(91),
+    // CallChain[size=9] = QShColor.LightGreen <-[Propag]- QShColor.LightYellow <-[Call]- QException.myS ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    LightGreen(92),
+    // CallChain[size=8] = QShColor.LightYellow <-[Call]- QException.mySrcAndStack <-[Call]- QException. ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    LightYellow(93),
+    // CallChain[size=9] = QShColor.LightBlue <-[Propag]- QShColor.LightYellow <-[Call]- QException.mySr ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    LightBlue(94),
+    // CallChain[size=9] = QShColor.LightPurple <-[Propag]- QShColor.LightYellow <-[Call]- QException.my ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    LightPurple(95),
+    // CallChain[size=9] = QShColor.LightCyan <-[Propag]- QShColor.LightYellow <-[Call]- QException.mySr ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    LightCyan(96),
+    // CallChain[size=9] = QShColor.White <-[Propag]- QShColor.LightYellow <-[Call]- QException.mySrcAnd ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    White(97);
+
+    // CallChain[size=9] = QShColor.fg <-[Propag]- QShColor.LightYellow <-[Call]- QException.mySrcAndSta ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     val fg: String = "$qSTART${code}m"
 
-    // CallChain[size=11] = QShColor.bg <-[Call]- String.qColorLine() <-[Call]- String.qColor() <-[Call] ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    /** ANSI modifier string to apply the color the text's background */
+    // CallChain[size=9] = QShColor.bg <-[Propag]- QShColor.LightYellow <-[Call]- QException.mySrcAndSta ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     val bg: String = "$qSTART${code + qBG_JUMP}m"
 
     companion object {
-        
+        // CallChain[size=9] = QShColor.random() <-[Propag]- QShColor.LightYellow <-[Call]- QException.mySrc ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+        fun random(seed: String, colors: Array<QShColor> = arrayOf(Yellow, Green, Blue, Purple, Cyan)): QShColor {
+            val idx = seed.hashCode().rem(colors.size).absoluteValue
+            return colors[idx]
+        }
+
+        // CallChain[size=9] = QShColor.get() <-[Propag]- QShColor.LightYellow <-[Call]- QException.mySrcAnd ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+        fun get(ansiEscapeCode: Int): QShColor {
+            return QShColor.values().find {
+                it.code == ansiEscapeCode
+            }!!
+        }
     }
 }
 
 // CallChain[size=8] = String.qColorTarget() <-[Call]- QException.mySrcAndStack <-[Call]- QException ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-private fun String.qColorTarget(ptn: Regex, color: QShColor = QShColor.LIGHT_YELLOW): String {
-    return ptn.replace(this, "$0".qColor(color))
+private fun String.qColorTarget(ptn: Regex, fg: QShColor? = null, bg: QShColor? = null): String {
+    return ptn.replace(this, "$0".qColor(fg, bg))
 }
 
 // CallChain[size=2] = red <-[Call]- QBlock.toString()[Root]
 private val String?.red: String
-    get() = this?.qColor(QShColor.RED) ?: "null".qColor(QShColor.RED)
+    get() = this?.qColor(QShColor.Red) ?: "null".qColor(QShColor.Red)
 
 // CallChain[size=2] = green <-[Call]- QBlock.toString()[Root]
 private val String?.green: String
-    get() = this?.qColor(QShColor.GREEN) ?: "null".qColor(QShColor.GREEN)
+    get() = this?.qColor(QShColor.Green) ?: "null".qColor(QShColor.Green)
 
 // CallChain[size=2] = yellow <-[Call]- QBlock.toString()[Root]
 private val String?.yellow: String
-    get() = this?.qColor(QShColor.YELLOW) ?: "null".qColor(QShColor.YELLOW)
+    get() = this?.qColor(QShColor.Yellow) ?: "null".qColor(QShColor.Yellow)
 
 // CallChain[size=2] = blue <-[Call]- QBlock.toString()[Root]
 private val String?.blue: String
-    get() = this?.qColor(QShColor.BLUE) ?: "null".qColor(QShColor.BLUE)
+    get() = this?.qColor(QShColor.Blue) ?: "null".qColor(QShColor.Blue)
 
-// CallChain[size=17] = cyan <-[Call]- QMaskResult.toString() <-[Propag]- QMaskResult <-[Ref]- QMask ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=10] = cyan <-[Call]- QLogStyle <-[Ref]- QLogStyle.SRC_AND_STACK <-[Call]- QExcepti ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private val String?.cyan: String
-    get() = this?.qColor(QShColor.CYAN) ?: "null".qColor(QShColor.CYAN)
+    get() = this?.qColor(QShColor.Cyan) ?: "null".qColor(QShColor.Cyan)
 
 // CallChain[size=5] = light_gray <-[Call]- QE.throwIt() <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private val String?.light_gray: String
-    get() = this?.qColor(QShColor.LIGHT_GRAY) ?: "null".qColor(QShColor.LIGHT_GRAY)
+    get() = this?.qColor(QShColor.LightGray) ?: "null".qColor(QShColor.LightGray)
 
 // CallChain[size=2] = dark_gray <-[Call]- QBlock.toString()[Root]
 private val String?.dark_gray: String
-    get() = this?.qColor(QShColor.DARK_GRAY) ?: "null".qColor(QShColor.DARK_GRAY)
+    get() = this?.qColor(QShColor.DarkGray) ?: "null".qColor(QShColor.DarkGray)
 
 // CallChain[size=11] = light_green <-[Call]- QLogStyle.qLogArrow() <-[Call]- QLogStyle.S <-[Call]-  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private val String?.light_green: String
-    get() = this?.qColor(QShColor.LIGHT_GREEN) ?: "null".qColor(QShColor.LIGHT_GREEN)
+    get() = this?.qColor(QShColor.LightGreen) ?: "null".qColor(QShColor.LightGreen)
 
 // CallChain[size=13] = light_cyan <-[Call]- qARROW <-[Call]- qArrow() <-[Call]- QLogStyle.qLogArrow ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private val String?.light_cyan: String
-    get() = this?.qColor(QShColor.LIGHT_CYAN) ?: "null".qColor(QShColor.LIGHT_CYAN)
+    get() = this?.qColor(QShColor.LightCyan) ?: "null".qColor(QShColor.LightCyan)
 
 // CallChain[size=10] = path <-[Call]- QMyPath.src_root <-[Call]- qLogStackFrames() <-[Call]- QExcep ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private val String.path: Path
@@ -2360,7 +2343,7 @@ private fun String.qWithNewLinePrefix(
     return lineSeparator.value.repeat(numNewLine) + substring(nCount)
 }
 
-// CallChain[size=18] = String.qWithNewLineSuffix() <-[Call]- String.qWithNewLineSurround() <-[Call] ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=13] = String.qWithNewLineSuffix() <-[Call]- String.qWithNewLineSurround() <-[Call] ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private fun String.qWithNewLineSuffix(numNewLine: Int = 1, onlyIf: QOnlyIfStr = QOnlyIfStr.Multiline): String {
     if (!onlyIf.matches(this)) return this
 
@@ -2369,7 +2352,7 @@ private fun String.qWithNewLineSuffix(numNewLine: Int = 1, onlyIf: QOnlyIfStr = 
     return substring(0, length - nCount) + "\n".repeat(numNewLine)
 }
 
-// CallChain[size=17] = String.qWithNewLineSurround() <-[Call]- QMaskResult.toString() <-[Propag]- Q ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=12] = String.qWithNewLineSurround() <-[Call]- String.qBracketEnd() <-[Call]- qBrac ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private fun String.qWithNewLineSurround(numNewLine: Int = 1, onlyIf: QOnlyIfStr = QOnlyIfStr.Multiline): String {
     if (!onlyIf.matches(this)) return this
 
@@ -2519,9 +2502,9 @@ private fun Any?.qToLogString(maxLineLength: Int = 80): String {
 // CallChain[size=6] = String.qClarifyEmptyOrBlank() <-[Call]- Any?.qToLogString() <-[Call]- QE.thro ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private fun String.qClarifyEmptyOrBlank(): String {
     return if (this.isEmpty()) {
-        "(EMPTY STRING)".qColor(QShColor.LIGHT_GRAY)
+        "(EMPTY STRING)".qColor(QShColor.LightGray)
     } else if (this.isBlank()) {
-        "$this(BLANK STRING)".qColor(QShColor.LIGHT_GRAY)
+        "$this(BLANK STRING)".qColor(QShColor.LightGray)
     } else {
         this
     }
@@ -2950,9 +2933,9 @@ private fun String.qCountOccurrence(word: String): Int {
     }.sum()
 }
 
-// CallChain[size=14] = QMask <-[Ref]- QMaskBetween <-[Call]- qMASK_COLORED <-[Call]- String.qApplyC ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=9] = QMask <-[Ref]- QMaskBetween <-[Call]- QMask.DOUBLE_QUOTE <-[Call]- QMask.KOTL ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private interface QMask {
-    // CallChain[size=15] = QMask.apply() <-[Propag]- QMask <-[Ref]- QMaskBetween <-[Call]- qMASK_COLORE ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=7] = QMask.apply() <-[Propag]- QMask.KOTLIN_STRING <-[Call]- Any?.qToLogString() < ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     fun apply(text: String): QMaskResult
 
     companion object {
@@ -3023,7 +3006,7 @@ private class QMultiMask(vararg mask: QMaskBetween) : QMask {
     }
 }
 
-// CallChain[size=13] = QMaskBetween <-[Call]- qMASK_COLORED <-[Call]- String.qApplyColorNestable()  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=8] = QMaskBetween <-[Call]- QMask.DOUBLE_QUOTE <-[Call]- QMask.KOTLIN_STRING <-[Ca ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private class QMaskBetween(
     val startSequence: String,
     val endSequence: String,
@@ -3042,12 +3025,12 @@ private class QMaskBetween(
     val maskChar: Char = '\uee31',
 ) : QMask {
 
-    // CallChain[size=14] = QMaskBetween.apply() <-[Propag]- QMaskBetween.QMaskBetween() <-[Ref]- qMASK_ ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=9] = QMaskBetween.apply() <-[Propag]- QMaskBetween.QMaskBetween() <-[Ref]- QMask.D ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     override fun apply(text: String): QMaskResult {
         return applyMore(text, null)
     }
 
-    // CallChain[size=15] = QMaskBetween.applyMore() <-[Call]- QMaskBetween.apply() <-[Propag]- QMaskBet ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=10] = QMaskBetween.applyMore() <-[Call]- QMaskBetween.apply() <-[Propag]- QMaskBet ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     fun applyMore(text: String, orgText: String? = null): QMaskResult {
         val regions = text.qFindBetween(
             startSequence,
@@ -3100,9 +3083,9 @@ private class QMaskBetween(
     }
 }
 
-// CallChain[size=18] = QMutRegion <-[Ref]- QRegion.toMutRegion() <-[Propag]- QRegion.contains() <-[ ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=13] = QMutRegion <-[Ref]- QRegion.toMutRegion() <-[Propag]- QRegion.contains() <-[ ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private open class QMutRegion(override var start: Int, override var end: Int) : QRegion(start, end) {
-    // CallChain[size=19] = QMutRegion.intersectMut() <-[Propag]- QMutRegion <-[Ref]- QRegion.toMutRegio ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=14] = QMutRegion.intersectMut() <-[Propag]- QMutRegion <-[Ref]- QRegion.toMutRegio ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     fun intersectMut(region: QRegion) {
         val start = max(this.start, region.start)
         val end = min(this.end, region.end)
@@ -3113,39 +3096,39 @@ private open class QMutRegion(override var start: Int, override var end: Int) : 
         }
     }
 
-    // CallChain[size=19] = QMutRegion.addOffset() <-[Propag]- QMutRegion <-[Ref]- QRegion.toMutRegion() ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=14] = QMutRegion.addOffset() <-[Propag]- QMutRegion <-[Ref]- QRegion.toMutRegion() ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     fun addOffset(offset: Int) {
         start += offset
         end += offset
     }
 
-    // CallChain[size=19] = QMutRegion.shift() <-[Propag]- QMutRegion <-[Ref]- QRegion.toMutRegion() <-[ ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=14] = QMutRegion.shift() <-[Propag]- QMutRegion <-[Ref]- QRegion.toMutRegion() <-[ ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     fun shift(length: Int) {
         this.start += length
         this.end += length
     }
 }
 
-// CallChain[size=18] = QRegion <-[Ref]- QRegion.intersect() <-[Propag]- QRegion.contains() <-[Call] ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=13] = QRegion <-[Ref]- QRegion.intersect() <-[Propag]- QRegion.contains() <-[Call] ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 /**
  * [start] inclusive, [end] exclusive
  */
 private open class QRegion(open val start: Int, open val end: Int) {
-    // CallChain[size=17] = QRegion.toMutRegion() <-[Propag]- QRegion.contains() <-[Call]- QMaskBetween. ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=12] = QRegion.toMutRegion() <-[Propag]- QRegion.contains() <-[Call]- QMaskBetween. ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     fun toMutRegion(): QMutRegion {
         return QMutRegion(start, end)
     }
 
-    // CallChain[size=17] = QRegion.toRange() <-[Propag]- QRegion.contains() <-[Call]- QMaskBetween.appl ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=12] = QRegion.toRange() <-[Propag]- QRegion.contains() <-[Call]- QMaskBetween.appl ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     fun toRange(): IntRange {
         return IntRange(start, end + 1)
     }
 
-    // CallChain[size=17] = QRegion.length <-[Propag]- QRegion.contains() <-[Call]- QMaskBetween.applyMo ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=12] = QRegion.length <-[Propag]- QRegion.contains() <-[Call]- QMaskBetween.applyMo ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     val length: Int
         get() = end - start
 
-    // CallChain[size=17] = QRegion.intersect() <-[Propag]- QRegion.contains() <-[Call]- QMaskBetween.ap ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=12] = QRegion.intersect() <-[Propag]- QRegion.contains() <-[Call]- QMaskBetween.ap ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     fun intersect(region: QRegion): QRegion? {
         val start = max(this.start, region.start)
         val end = min(this.end, region.end)
@@ -3157,36 +3140,36 @@ private open class QRegion(open val start: Int, open val end: Int) {
         }
     }
 
-    // CallChain[size=16] = QRegion.contains() <-[Call]- QMaskBetween.applyMore() <-[Call]- QMaskBetween ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=11] = QRegion.contains() <-[Call]- QMaskBetween.applyMore() <-[Call]- QMaskBetween ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     fun contains(idx: Int): Boolean {
         return idx in start until end
     }
 
-    // CallChain[size=17] = QRegion.cut() <-[Propag]- QRegion.contains() <-[Call]- QMaskBetween.applyMor ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=12] = QRegion.cut() <-[Propag]- QRegion.contains() <-[Call]- QMaskBetween.applyMor ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     fun cut(text: String): String {
         return text.substring(start, end)
     }
 
-    // CallChain[size=17] = QRegion.remove() <-[Propag]- QRegion.contains() <-[Call]- QMaskBetween.apply ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=12] = QRegion.remove() <-[Propag]- QRegion.contains() <-[Call]- QMaskBetween.apply ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     fun remove(text: String): String {
         return text.removeRange(start, end)
     }
 
-    // CallChain[size=17] = QRegion.replace() <-[Propag]- QRegion.contains() <-[Call]- QMaskBetween.appl ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=12] = QRegion.replace() <-[Propag]- QRegion.contains() <-[Call]- QMaskBetween.appl ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     fun replace(text: String, replacement: String): String {
         return text.replaceRange(start, end, replacement)
     }
 
-    // CallChain[size=17] = QRegion.mask() <-[Propag]- QRegion.contains() <-[Call]- QMaskBetween.applyMo ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=12] = QRegion.mask() <-[Propag]- QRegion.contains() <-[Call]- QMaskBetween.applyMo ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     fun mask(text: String, maskChar: Char = '*'): String {
         return text.replaceRange(this.toRange(), maskChar.toString().repeat(end - start))
     }
 }
 
-// CallChain[size=14] = QReplacer <-[Ref]- String.qMaskAndReplace() <-[Call]- String.qMaskAndReplace ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=8] = QReplacer <-[Ref]- String.qMaskAndReplace() <-[Call]- QMaskResult.replaceAndU ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private class QReplacer(start: Int, end: Int, val replacement: String) : QMutRegion(start, end)
 
-// CallChain[size=15] = QMaskResult <-[Ref]- QMaskBetween.apply() <-[Propag]- QMaskBetween.QMaskBetw ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=8] = QMaskResult <-[Ref]- QMask.apply() <-[Propag]- QMask.KOTLIN_STRING <-[Call]-  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private class QMaskResult(val maskedStr: String, val orgText: String, val maskChar: Char) {
     // CallChain[size=6] = QMaskResult.replaceAndUnmask() <-[Call]- Any?.qToLogString() <-[Call]- QE.thr ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     /**
@@ -3202,7 +3185,7 @@ private class QMaskResult(val maskedStr: String, val orgText: String, val maskCh
         return mask.applyMore(maskedStr, orgText)
     }
 
-    // CallChain[size=16] = QMaskResult.toString() <-[Propag]- QMaskResult <-[Ref]- QMaskBetween.apply() ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=9] = QMaskResult.toString() <-[Propag]- QMaskResult <-[Ref]- QMask.apply() <-[Prop ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     override fun toString(): String {
         val original = orgText.qWithNewLineSurround(onlyIf = QOnlyIfStr.Multiline)
         val masked = maskedStr.replace(maskChar, '*').qWithNewLineSurround(onlyIf = QOnlyIfStr.Multiline)
@@ -3231,7 +3214,7 @@ private fun CharSequence.qMask(vararg mask: QMask): QMaskResult {
     }
 }
 
-// CallChain[size=16] = String.qFindBetween() <-[Call]- QMaskBetween.applyMore() <-[Call]- QMaskBetw ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=11] = String.qFindBetween() <-[Call]- QMaskBetween.applyMore() <-[Call]- QMaskBetw ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private fun String.qFindBetween(
     startSequence: String,
     endSequence: String,
@@ -3258,7 +3241,7 @@ private fun String.qFindBetween(
     return finder.find(this)
 }
 
-// CallChain[size=13] = String.qMaskAndReplace() <-[Call]- String.qMaskAndReplace() <-[Call]- String ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=7] = String.qMaskAndReplace() <-[Call]- QMaskResult.replaceAndUnmask() <-[Call]- A ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private fun String.qMaskAndReplace(
     maskedStr: String,
     ptn: Regex,
@@ -3292,19 +3275,7 @@ private fun String.qMaskAndReplace(
     return qMultiReplace(replacers)
 }
 
-// CallChain[size=12] = String.qMaskAndReplace() <-[Call]- String.qApplyColorNestable() <-[Call]- St ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-private fun String.qMaskAndReplace(
-    mask: QMask,
-    ptn: Regex,
-    replacement: String = "$1",
-    replaceAll: Boolean = true,
-): String {
-    val maskResult = mask.apply(this)
-
-    return qMaskAndReplace(maskResult.maskedStr, ptn, replacement, replaceAll)
-}
-
-// CallChain[size=14] = CharSequence.qMultiReplace() <-[Call]- String.qMaskAndReplace() <-[Call]- St ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=8] = CharSequence.qMultiReplace() <-[Call]- String.qMaskAndReplace() <-[Call]- QMa ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 /**
  * currently does not support region overlap
  */
@@ -3320,7 +3291,7 @@ private fun CharSequence.qMultiReplace(replacers: List<QReplacer>): String {
     return sb.toString()
 }
 
-// CallChain[size=14] = MatchResult.qResolveReplacementGroup() <-[Call]- String.qMaskAndReplace() <- ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=8] = MatchResult.qResolveReplacementGroup() <-[Call]- String.qMaskAndReplace() <-[ ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private fun MatchResult.qResolveReplacementGroup(replacement: String, orgText: String): String {
     var resolveGroup = replacement
 
@@ -3339,20 +3310,20 @@ private fun MatchResult.qResolveReplacementGroup(replacement: String, orgText: S
     return resolveGroup
 }
 
-// CallChain[size=15] = CharSequence.qReplace() <-[Call]- MatchResult.qResolveReplacementGroup() <-[ ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=9] = CharSequence.qReplace() <-[Call]- MatchResult.qResolveReplacementGroup() <-[C ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private fun CharSequence.qReplace(oldValue: String, newValue: String, escapeChar: Char): String {
     return replace(Regex("""(?<!\Q$escapeChar\E)\Q$oldValue\E"""), newValue)
 }
 
-// CallChain[size=18] = QSequenceReader <-[Call]- QBetween.find() <-[Call]- String.qFindBetween() <- ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=13] = QSequenceReader <-[Call]- QBetween.find() <-[Call]- String.qFindBetween() <- ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private class QSequenceReader(text: CharSequence) : QCharReader(text) {
-    // CallChain[size=20] = QSequenceReader.sequenceOffset <-[Call]- QSequenceReader.offsetInSequence()  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    var sequenceOffset = 0
+    // CallChain[size=15] = QSequenceReader.sequenceOffset <-[Call]- QSequenceReader.offsetInSequence()  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    private var sequenceOffset = 0
 
-    // CallChain[size=20] = QSequenceReader.sequence <-[Call]- QSequenceReader.peekCurrentCharInSequence ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    var sequence: CharArray? = null
+    // CallChain[size=15] = QSequenceReader.sequence <-[Call]- QSequenceReader.peekCurrentCharInSequence ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    private var sequence: CharArray? = null
 
-    // CallChain[size=19] = QSequenceReader.startReadingSequence() <-[Call]- QSequenceReader.detectSeque ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=14] = QSequenceReader.startReadingSequence() <-[Call]- QSequenceReader.detectSeque ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     private fun startReadingSequence(sequence: CharArray): Boolean {
         return if (!hasNextChar(sequence.size)) {
             false
@@ -3363,7 +3334,7 @@ private class QSequenceReader(text: CharSequence) : QCharReader(text) {
         }
     }
 
-    // CallChain[size=19] = QSequenceReader.endReadingSequence() <-[Call]- QSequenceReader.detectSequenc ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=14] = QSequenceReader.endReadingSequence() <-[Call]- QSequenceReader.detectSequenc ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     private fun endReadingSequence(success: Boolean): Boolean {
 
         if (!success) {
@@ -3375,13 +3346,13 @@ private class QSequenceReader(text: CharSequence) : QCharReader(text) {
         return success
     }
 
-    // CallChain[size=19] = QSequenceReader.hasNextCharInSequence() <-[Call]- QSequenceReader.detectSequ ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    fun hasNextCharInSequence(): Boolean {
+    // CallChain[size=14] = QSequenceReader.hasNextCharInSequence() <-[Call]- QSequenceReader.detectSequ ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    private fun hasNextCharInSequence(): Boolean {
         return if (sequence == null) {
             false
         } else {
             (offsetInSequence() < sequence!!.size) &&
-                hasNextChar()
+                    hasNextChar()
         }
     }
 
@@ -3389,20 +3360,20 @@ private class QSequenceReader(text: CharSequence) : QCharReader(text) {
 //        return sequence!![offset - sequenceOffset]
 //    }
 
-    // CallChain[size=19] = QSequenceReader.peekCurrentCharInSequence() <-[Call]- QSequenceReader.detect ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    fun peekCurrentCharInSequence(): Char {
+    // CallChain[size=14] = QSequenceReader.peekCurrentCharInSequence() <-[Call]- QSequenceReader.detect ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    private fun peekCurrentCharInSequence(): Char {
         return sequence!![offsetInSequence()]
     }
 
-    // CallChain[size=19] = QSequenceReader.offsetInSequence() <-[Call]- QSequenceReader.detectSequence( ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=14] = QSequenceReader.offsetInSequence() <-[Call]- QSequenceReader.detectSequence( ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     /**
      * 0 to sequence.size - 1
      */
-    fun offsetInSequence(): Int {
+    private fun offsetInSequence(): Int {
         return offset - sequenceOffset
     }
 
-    // CallChain[size=18] = QSequenceReader.detectSequence() <-[Call]- QBetween.find() <-[Call]- String. ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=13] = QSequenceReader.detectSequence() <-[Call]- QBetween.find() <-[Call]- String. ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     /**
      * If sequence is detected, move offset by the length of the sequence.
      * If no sequence is found, offset remains unchanged.
@@ -3429,20 +3400,22 @@ private class QSequenceReader(text: CharSequence) : QCharReader(text) {
             success
         }
     }
+
+    
 }
 
-// CallChain[size=19] = QCharReader <-[Call]- QSequenceReader <-[Call]- QBetween.find() <-[Call]- St ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=14] = QCharReader <-[Call]- QSequenceReader <-[Call]- QBetween.find() <-[Call]- St ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private open class QCharReader(val text: CharSequence) {
-    // CallChain[size=20] = QCharReader.offset <-[Propag]- QCharReader <-[Call]- QSequenceReader <-[Call ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=15] = QCharReader.offset <-[Propag]- QCharReader <-[Call]- QSequenceReader <-[Call ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     var offset = 0
 
-    // CallChain[size=20] = QCharReader.lineNumber() <-[Propag]- QCharReader <-[Call]- QSequenceReader < ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=15] = QCharReader.lineNumber() <-[Propag]- QCharReader <-[Call]- QSequenceReader < ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     fun lineNumber(): Int {
         // Consider caret to be between the character on the offset and the character preceding it
         //
         // ex. ( [ ] indicate offsets )
-        // [\n]abc\n --> 1
-        // \n[\n] --> 2
+        // [\n]abc\n --> lineNumber is 1 "First Line"
+        // \n[\n] --> lineNumber is 2 "Second Line"
 
         var lineBreakCount = 0
 
@@ -3459,7 +3432,7 @@ private open class QCharReader(val text: CharSequence) {
         return lineBreakCount + 1
     }
 
-    // CallChain[size=20] = QCharReader.countIndentSpaces() <-[Propag]- QCharReader <-[Call]- QSequenceR ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=15] = QCharReader.countIndentSpaces() <-[Propag]- QCharReader <-[Call]- QSequenceR ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     fun countIndentSpaces(space: Char = ' '): Int {
         var count = 0
 
@@ -3496,56 +3469,74 @@ private open class QCharReader(val text: CharSequence) {
         return count
     }
 
-    // CallChain[size=20] = QCharReader.hasNextChar() <-[Propag]- QCharReader <-[Call]- QSequenceReader  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=15] = QCharReader.hasNextChar() <-[Propag]- QCharReader <-[Call]- QSequenceReader  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     inline fun hasNextChar(len: Int = 1): Boolean {
         return offset + len - 1 < text.length
     }
 
-    // CallChain[size=20] = QCharReader.isOffsetEOF() <-[Propag]- QCharReader <-[Call]- QSequenceReader  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=15] = QCharReader.isOffsetEOF() <-[Propag]- QCharReader <-[Call]- QSequenceReader  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     inline fun isOffsetEOF(): Boolean {
         return offset == text.length - 1
     }
 
-    // CallChain[size=20] = QCharReader.isValidOffset() <-[Propag]- QCharReader <-[Call]- QSequenceReade ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=15] = QCharReader.isValidOffset() <-[Propag]- QCharReader <-[Call]- QSequenceReade ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     inline fun isValidOffset(): Boolean {
         return 0 <= offset && offset < text.length
     }
 
-    // CallChain[size=20] = QCharReader.hasPreviousChar() <-[Propag]- QCharReader <-[Call]- QSequenceRea ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=15] = QCharReader.hasPreviousChar() <-[Propag]- QCharReader <-[Call]- QSequenceRea ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     inline fun hasPreviousChar(len: Int = 1): Boolean {
         return 0 < offset - len + 1
     }
 
-    // CallChain[size=20] = QCharReader.previousChar() <-[Propag]- QCharReader <-[Call]- QSequenceReader ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    inline fun previousChar(len: Int = 1) {
+    // CallChain[size=15] = QCharReader.previousChar() <-[Propag]- QCharReader <-[Call]- QSequenceReader ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    inline fun previousChar(len: Int = 1): Char {
         offset -= len
+        return text[offset]
     }
 
-    // CallChain[size=20] = QCharReader.currentChar() <-[Propag]- QCharReader <-[Call]- QSequenceReader  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=15] = QCharReader.currentChar() <-[Propag]- QCharReader <-[Call]- QSequenceReader  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     inline fun currentChar(): Char {
         return text[offset]
     }
 
-    // CallChain[size=20] = QCharReader.peekNextChar() <-[Propag]- QCharReader <-[Call]- QSequenceReader ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
-    fun peekNextChar(): Char {
+    // CallChain[size=15] = QCharReader.peekNextChar() <-[Propag]- QCharReader <-[Call]- QSequenceReader ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    inline fun peekNextChar(): Char {
         return text[offset]
     }
 
-    // CallChain[size=20] = QCharReader.moveOffset() <-[Propag]- QCharReader <-[Call]- QSequenceReader < ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=15] = QCharReader.moveOffset() <-[Propag]- QCharReader <-[Call]- QSequenceReader < ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     inline fun moveOffset(plus: Int = 1) {
         offset += plus
     }
 
-    // CallChain[size=20] = QCharReader.nextChar() <-[Propag]- QCharReader <-[Call]- QSequenceReader <-[ ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=15] = QCharReader.nextChar() <-[Propag]- QCharReader <-[Call]- QSequenceReader <-[ ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     /**
      * Read current offset char and add offset by 1.
      */
     inline fun nextChar(): Char {
         return text[offset++]
     }
+
+    // CallChain[size=15] = QCharReader.nextStringExcludingCurOffset() <-[Propag]- QCharReader <-[Call]- ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    fun nextStringExcludingCurOffset(length: Int): String {
+        val str = text.substring(offset + 1, (offset + 1 + length).coerceAtMost(text.length))
+        offset += length
+        return str
+    }
+
+    // CallChain[size=15] = QCharReader.peekNextStringIncludingCurOffset() <-[Propag]- QCharReader <-[Ca ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    fun peekNextStringIncludingCurOffset(length: Int): String {
+        return text.substring(offset, (offset + length).coerceAtMost(text.length))
+    }
+
+    // CallChain[size=15] = QCharReader.peekPreviousStringExcludingCurOffset() <-[Propag]- QCharReader < ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    fun peekPreviousStringExcludingCurOffset(length: Int): String {
+        return text.substring(offset - length, offset)
+    }
 }
 
-// CallChain[size=17] = QBetween <-[Call]- String.qFindBetween() <-[Call]- QMaskBetween.applyMore()  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=12] = QBetween <-[Call]- String.qFindBetween() <-[Call]- QMaskBetween.applyMore()  ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 private class QBetween(
     val startSequence: String,
     val endSequence: String,
@@ -3560,7 +3551,7 @@ private class QBetween(
     val regionIncludeStartAndEndSequence: Boolean = false,
 ) {
 
-    // CallChain[size=17] = QBetween.find() <-[Call]- String.qFindBetween() <-[Call]- QMaskBetween.apply ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+    // CallChain[size=12] = QBetween.find() <-[Call]- String.qFindBetween() <-[Call]- QMaskBetween.apply ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
     fun find(text: CharSequence): List<QRegion> {
         val reader = QSequenceReader(text)
 

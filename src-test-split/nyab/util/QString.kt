@@ -33,25 +33,25 @@ internal enum class QLR {
 
 // CallChain[size=5] = qSeparator() <-[Call]- QOut.separator() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
 internal fun qSeparator(
-        fg: QShColor? = QShColor.LIGHT_GRAY,
-        bg: QShColor? = null,
-        char: Char = '⎯',
-        length: Int = 80,
-        start: String = "\n",
-        end: String = "\n",
+    fg: QShColor? = QShColor.LightGray,
+    bg: QShColor? = null,
+    char: Char = '⎯',
+    length: Int = 80,
+    start: String = "\n",
+    end: String = "\n",
 ): String {
     return start + char.toString().repeat(length).qColor(fg, bg) + end
 }
 
 // CallChain[size=5] = qSeparatorWithLabel() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
 internal fun qSeparatorWithLabel(
-        label: String,
-        fg: QShColor? = QShColor.LIGHT_GRAY,
-        bg: QShColor? = null,
-        char: Char = '⎯',
-        length: Int = 70,
-        start: String = "\n",
-        end: String = "\n",
+    label: String,
+    fg: QShColor? = QShColor.LightGray,
+    bg: QShColor? = null,
+    char: Char = '⎯',
+    length: Int = 70,
+    start: String = "\n",
+    end: String = "\n",
 ): String {
     return start + label + "  " + char.toString().repeat((length - label.length - 2).coerceAtLeast(0)).qColor(fg, bg)
             .qWithMinAndMaxLength(length, length, alignment = QAlign.LEFT, endDots = "") + end
@@ -125,7 +125,7 @@ internal fun String.qWithNewLinePrefix(
     return lineSeparator.value.repeat(numNewLine) + substring(nCount)
 }
 
-// CallChain[size=26] = String.qWithNewLineSuffix() <-[Call]- String.qWithNewLineSurround() <-[Call] ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+// CallChain[size=21] = String.qWithNewLineSuffix() <-[Call]- String.qWithNewLineSurround() <-[Call] ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal fun String.qWithNewLineSuffix(numNewLine: Int = 1, onlyIf: QOnlyIfStr = QOnlyIfStr.Multiline): String {
     if (!onlyIf.matches(this)) return this
 
@@ -134,7 +134,7 @@ internal fun String.qWithNewLineSuffix(numNewLine: Int = 1, onlyIf: QOnlyIfStr =
     return substring(0, length - nCount) + "\n".repeat(numNewLine)
 }
 
-// CallChain[size=25] = String.qWithNewLineSurround() <-[Call]- QMaskResult.toString() <-[Propag]- Q ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+// CallChain[size=20] = String.qWithNewLineSurround() <-[Call]- String.qBracketEnd() <-[Call]- qBrac ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal fun String.qWithNewLineSurround(numNewLine: Int = 1, onlyIf: QOnlyIfStr = QOnlyIfStr.Multiline): String {
     if (!onlyIf.matches(this)) return this
 
@@ -284,9 +284,9 @@ internal fun Any?.qToLogString(maxLineLength: Int = 80): String {
 // CallChain[size=9] = String.qClarifyEmptyOrBlank() <-[Call]- Any?.qToLogString() <-[Call]- T.qLog( ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal fun String.qClarifyEmptyOrBlank(): String {
     return if (this.isEmpty()) {
-        "(EMPTY STRING)".qColor(QShColor.LIGHT_GRAY)
+        "(EMPTY STRING)".qColor(QShColor.LightGray)
     } else if (this.isBlank()) {
-        "$this(BLANK STRING)".qColor(QShColor.LIGHT_GRAY)
+        "$this(BLANK STRING)".qColor(QShColor.LightGray)
     } else {
         this
     }

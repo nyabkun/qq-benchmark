@@ -1,0 +1,51 @@
+Version: v2023-06-01
+
+# Public API [main]
+qBenchmark() - Function
+QBenchmark - Class
+QOut - Interface (Chained)
+
+# single src file number of lines [main]
+3631
+# split src file number of files [main]
+26
+# number of marked nodes [main]
+540
+# number of all nodes [main]
+1354
+# number of root of chain nodes [main]
+30
+# single src file number of lines [test]
+4512
+# split src file number of files [test]
+30
+# number of marked nodes [test]
+658
+# number of all nodes [test]
+1658
+# number of root of chain nodes [test]
+5
+
+# chain node hit count [main]
+           QBlock.toString() [KtNamedFunction] <Second Level> : 476
+        QTimeAndResult.str() [KtNamedFunction] <Second Level> : 405
+        String.qWithMaxLength() [KtNamedFunction] <Top Level> : 403
+                   QE.throwIt() [KtNamedFunction] <Top Level> : 399
+QException.QException() [KtPrimaryConstructor] <Second Level> : 271
+QException.printStackTrace() [KtNamedFunction] <Second Level> : 239
+         QException.mySrcAndStack [KtProperty] <Second Level> : 238
+              qLogStackFrames() [KtNamedFunction] <Top Level> : 163
+            Any?.qToLogString() [KtNamedFunction] <Top Level> : 124
+           qMySrcLinesAtFrame() [KtNamedFunction] <Top Level> :  98
+
+# chain node hit count [test]
+QBenchmarkTest.cachedRegex() [KtNamedFunction] <Second Level> : 540
+          QBenchmark.block() [KtNamedFunction] <Second Level> : 503
+                             QBlockLoop [KtClass] <Top Level> : 408
+            QBlockLoop.timeMedian [KtProperty] <Second Level> : 398
+              QOnePassStat.median [KtProperty] <Second Level> : 397
+                QOnePassStat.data [KtProperty] <Second Level> : 395
+                       T.qLog() [KtNamedFunction] <Top Level> : 381
+                QSrcCut.UNTIL_qLog [KtProperty] <Third Level> : 253
+                                QSrcCut [KtClass] <Top Level> : 220
+            QFetchRule.SINGLE_LINE [KtProperty] <Third Level> : 219

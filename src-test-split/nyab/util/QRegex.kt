@@ -29,14 +29,3 @@ internal fun qRe(@Language("RegExp") regex: String, vararg opts: RO): Regex {
 // https://youtrack.jetbrains.com/issue/KTIJ-5643
 internal val @receiver:Language("RegExp") String.re: Regex
     get() = qRe(this)
-
-// CallChain[size=20] = String.qReplaceFirstIfNonEmptyStringGroup() <-[Call]- String.qApplyColorNest ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-internal fun String.qReplaceFirstIfNonEmptyStringGroup(@Language("RegExp") regex: String, nonEmptyGroupIdx: Int, replace: String = "$1", vararg opts: RO): String {
-    val re = qRe(regex, *opts)
-
-    return if (re.find(this)?.groups?.get(nonEmptyGroupIdx)?.value?.isNotEmpty() == true) {
-        re.replaceFirst(this, replace)
-    } else {
-        this
-    }
-}

@@ -1,9 +1,11 @@
+<!--- version = v2023-06-01 --->
+
 # 🐕 qq-benchmark
 
 **qq-benchmark** is a Kotlin library that can benchmark your code snippets with beautiful console output.
 
-- Just copy and paste 🟦 Single-File version [QBenchmark.kt](src-single/QBenchmark.kt) into your project.- Or you can use 🟩 Split-File Jar version. See [Maven Dependency Section](#-split-file-jar-version-maven-dependency).
-- Feel free to fork or copy to your own codebase.
+- Just copy and paste Single-File version [QBenchmark.kt](src-single/QBenchmark.kt) into your project.
+- Or you can use Split-File Jar version. See [Maven Dependency Section](#-split-file-jar-version-maven-dependency).- Feel free to fork or copy to your own codebase.
 
 ## Example
 
@@ -15,9 +17,9 @@
     <img src="img/result.png" width="886" alt="result.png">
 </p>
 
-### code
+### code example
 
-Full Source  [QBenchmarkExample.kt](src-example/QBenchmarkExample.kt)
+Full Source : [QBenchmarkExample.kt](src-example/QBenchmarkExample.kt)
 
 ```kotlin
 qBenchmark {
@@ -63,10 +65,14 @@ Please see [QBenchmarkTest.kt](src-test-split/nyab/util/QBenchmarkTest.kt) for m
 Single-File version [src-test-single/QBenchmarkTest.kt](src-test-single/QBenchmarkTest.kt) is a self-contained source code that includes a runnable main function.
 You can easily copy and paste it into your codebase.        
 
-## 🟦 Single-File version Dependency
+## Public API
 
-If you copy & paste [QBenchmark.kt](src-single/QBenchmark.kt).
+- `qBenchmark()` *Function* [📄 Jump to Code](src-split/nyab/util/QBenchmark.kt#L25-32)
+- `QBenchmark` *Class* [📄 Jump to Code](src-split/nyab/util/QBenchmark.kt#L34-83)
 
+## Single-File version Dependency
+
+If you copy & paste [QBenchmark.kt](src-single/QBenchmark.kt),
 Refer to [build.gradle.kts](build.gradle.kts) to directly check project settings.
 
 
@@ -78,9 +84,10 @@ dependencies {
 }
 ```
 
-## 🟩 Split-File Jar version Maven Dependency
+## Split-File Jar version Maven Dependency
 
-If you prefer a jar library. Add [jitpack.io](https://jitpack.io/#nyabkun/qq-benchmark) repository to the build script.
+If you prefer a jar library,
+add [jitpack.io](https://jitpack.io/#nyabkun/qq-benchmark) repository to your build settings.
 
 ### build.gradle ( Groovy )
 ```groovy
@@ -90,7 +97,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.nyabkun:qq-benchmark:v2023-05-28'
+    implementation 'com.github.nyabkun:qq-benchmark:v2023-06-01'
 }
 ```
 
@@ -102,7 +109,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.nyabkun:qq-benchmark:v2023-05-28")
+    implementation("com.github.nyabkun:qq-benchmark:v2023-06-01")
 }
 ```
 
@@ -121,14 +128,15 @@ dependencies {
     <dependency>
         <groupId>com.github.nyabkun</groupId>
         <artifactId>qq-benchmark</artifactId>
-        <version>v2023-05-28</version>
+        <version>v2023-06-01</version>
     </dependency>
 </dependencies>
 ```
 
 ## How did I create this library
 
-- This library was created using [qq-compact-lib](https://github.com/nyabkun/qq-compact-lib) to generates compact, self-contained libraries.
+- This library was created using [qq-compact-lib](https://github.com/nyabkun/qq-compact-lib) to generates a compact, self-contained library.
+- **qq-compact-lib** is a Kotlin library that can extract code elements from your codebase and make a compact library.
 - It utilizes [PSI](https://plugins.jetbrains.com/docs/intellij/psi.html) to resolve function calls and class references.
 - The original repository is currently being organized, and I'm gradually extracting and publishing smaller libraries.
 

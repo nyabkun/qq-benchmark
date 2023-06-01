@@ -10,6 +10,8 @@
 
 package nyab.util
 
+import java.lang.NumberFormatException
+import kotlin.random.Random
 import nyab.test.QTestHumanCheckRequired
 import nyab.test.qTestHumanCheck
 
@@ -23,6 +25,33 @@ fun main() {
 
 // << Root of the CallChain >>
 class QBenchmarkTest {
+    // << Root of the CallChain >>
+    @QTestHumanCheckRequired(true)
+    fun tryCatch() {
+        qBenchmark {
+            val rand = Random.Default
+            val arrNumStr = (1..10000).map {
+                rand.nextInt().toString()
+            }
+
+            block("String.toInt() with try ~ catch") {
+                arrNumStr.map {
+                    try {
+                        it.toInt()
+                    } catch(e: NumberFormatException) {
+                        -1
+                    }
+                }
+            }
+
+            block("String.toInt() without try ~ catch") {
+                arrNumStr.map {
+                    it.toInt()
+                }
+            }
+        }
+    }
+
     // << Root of the CallChain >>
     @QTestHumanCheckRequired
     fun stringConcatenation() {

@@ -76,7 +76,7 @@ internal fun String.qWithNewLinePrefix(
     return lineSeparator.value.repeat(numNewLine) + substring(nCount)
 }
 
-// CallChain[size=18] = String.qWithNewLineSuffix() <-[Call]- String.qWithNewLineSurround() <-[Call] ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=13] = String.qWithNewLineSuffix() <-[Call]- String.qWithNewLineSurround() <-[Call] ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 internal fun String.qWithNewLineSuffix(numNewLine: Int = 1, onlyIf: QOnlyIfStr = QOnlyIfStr.Multiline): String {
     if (!onlyIf.matches(this)) return this
 
@@ -85,7 +85,7 @@ internal fun String.qWithNewLineSuffix(numNewLine: Int = 1, onlyIf: QOnlyIfStr =
     return substring(0, length - nCount) + "\n".repeat(numNewLine)
 }
 
-// CallChain[size=17] = String.qWithNewLineSurround() <-[Call]- QMaskResult.toString() <-[Propag]- Q ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
+// CallChain[size=12] = String.qWithNewLineSurround() <-[Call]- String.qBracketEnd() <-[Call]- qBrac ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 internal fun String.qWithNewLineSurround(numNewLine: Int = 1, onlyIf: QOnlyIfStr = QOnlyIfStr.Multiline): String {
     if (!onlyIf.matches(this)) return this
 
@@ -235,9 +235,9 @@ internal fun Any?.qToLogString(maxLineLength: Int = 80): String {
 // CallChain[size=6] = String.qClarifyEmptyOrBlank() <-[Call]- Any?.qToLogString() <-[Call]- QE.thro ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 internal fun String.qClarifyEmptyOrBlank(): String {
     return if (this.isEmpty()) {
-        "(EMPTY STRING)".qColor(QShColor.LIGHT_GRAY)
+        "(EMPTY STRING)".qColor(QShColor.LightGray)
     } else if (this.isBlank()) {
-        "$this(BLANK STRING)".qColor(QShColor.LIGHT_GRAY)
+        "$this(BLANK STRING)".qColor(QShColor.LightGray)
     } else {
         this
     }

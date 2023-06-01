@@ -32,6 +32,7 @@ import kotlin.reflect.jvm.isAccessible
 import kotlin.streams.asSequence
 import nyab.conf.QE
 import nyab.conf.QMyPath
+import nyab.conf.qSTACK_FRAME_FILTER
 import nyab.match.QM
 import nyab.match.QMFunc
 import nyab.match.and
@@ -102,7 +103,7 @@ internal fun qSrcFileAtFrame(frame: StackFrame, srcRoots: List<Path> = QMyPath.s
 internal inline fun qStackFrames(
         stackDepth: Int = 0,
         size: Int = 1,
-        noinline filter: (StackFrame) -> Boolean = QE.STACK_FRAME_FILTER,
+        noinline filter: (StackFrame) -> Boolean = qSTACK_FRAME_FILTER,
 ): List<StackFrame> {
     return StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).walk { s: Stream<StackFrame> ->
         s.asSequence().filter(filter).drop(stackDepth).take(size).toList()
@@ -112,7 +113,7 @@ internal inline fun qStackFrames(
 // CallChain[size=11] = qStackFrame() <-[Call]- qSrcFileLinesAtFrame() <-[Call]- qMySrcLinesAtFrame( ... <-[Call]- String.qWithMaxLength() <-[Call]- QTimeAndResult.str() <-[Call]- QBlock.toString()[Root]
 internal inline fun qStackFrame(
         stackDepth: Int = 0,
-        noinline filter: (StackFrame) -> Boolean = QE.STACK_FRAME_FILTER,
+        noinline filter: (StackFrame) -> Boolean = qSTACK_FRAME_FILTER,
 ): StackFrame {
     return qStackFrames(stackDepth, 1, filter)[0]
 }

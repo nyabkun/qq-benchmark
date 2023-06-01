@@ -33,6 +33,7 @@ import kotlin.reflect.jvm.isAccessible
 import kotlin.streams.asSequence
 import nyab.conf.QE
 import nyab.conf.QMyPath
+import nyab.conf.qSTACK_FRAME_FILTER
 import nyab.match.QM
 import nyab.match.QMFunc
 import nyab.match.and
@@ -148,7 +149,7 @@ internal fun qCallerSrcLineSignature(stackDepth: Int = 0): String {
 internal inline fun qStackFrames(
         stackDepth: Int = 0,
         size: Int = 1,
-        noinline filter: (StackFrame) -> Boolean = QE.STACK_FRAME_FILTER,
+        noinline filter: (StackFrame) -> Boolean = qSTACK_FRAME_FILTER,
 ): List<StackFrame> {
     return StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).walk { s: Stream<StackFrame> ->
         s.asSequence().filter(filter).drop(stackDepth).take(size).toList()
@@ -158,7 +159,7 @@ internal inline fun qStackFrames(
 // CallChain[size=19] = qStackFrame() <-[Call]- qSrcFileLinesAtFrame() <-[Call]- qMySrcLinesAtFrame( ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal inline fun qStackFrame(
         stackDepth: Int = 0,
-        noinline filter: (StackFrame) -> Boolean = QE.STACK_FRAME_FILTER,
+        noinline filter: (StackFrame) -> Boolean = qSTACK_FRAME_FILTER,
 ): StackFrame {
     return qStackFrames(stackDepth, 1, filter)[0]
 }

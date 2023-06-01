@@ -16,12 +16,13 @@ import nyab.util.yellow
 // This is a split-file version of the library, this file is not self-contained.
 
 // CallChain[size=14] = QMyMark <-[Ref]- QException.QException() <-[Ref]- QE.throwIt() <-[Call]- qUn ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+@Suppress("MayBeConstant")
 internal object QMyMark {
-    // CallChain[size=5] = QMyMark.TEST_METHOD <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-    val TEST_METHOD = "☕".yellow
-    // CallChain[size=14] = QMyMark.WARN <-[Call]- QException.QException() <-[Ref]- QE.throwIt() <-[Call ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-    val WARN = "⚠".yellow
-    // CallChain[size=4] = QMyMark.TEST_START <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-    val TEST_START = "☘".yellow
+    // CallChain[size=5] = QMyMark.test_method <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+    val test_method = "☕".yellow
+    // CallChain[size=14] = QMyMark.warn <-[Call]- QException.QException() <-[Ref]- QE.throwIt() <-[Call ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+    val warn = "⚠".yellow
+    // CallChain[size=4] = QMyMark.test_start <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
+    val test_start = "☘".yellow
     
 }

@@ -140,7 +140,7 @@ internal class QTestResult(val elements: List<QTestResultElement>, val time: Lon
                         """(.*($ta|${ta}Kt).*?)\("""
                     }.re
 
-                    val stackStr = stackColoringRegex.replace(cause.mySrcAndStack, "$1".qColor(QShColor.BLUE) + "(")
+                    val stackStr = stackColoringRegex.replace(cause.mySrcAndStack, "$1".qColor(QShColor.Blue) + "(")
 
                     cause.message + "\n\n" + stackStr
                 } else {
@@ -176,7 +176,7 @@ private fun qTestMethods(
     val timeItResult = qTimeIt(quiet = true) {
         for (method in methodsToTest) {
             // "⭐"
-            out.println(qSeparatorWithLabel("${QMyMark.TEST_METHOD} " + method.qName(true)))
+            out.println(qSeparatorWithLabel("${QMyMark.test_method} " + method.qName(true)))
 
             method.qTrySetAccessible()
 
@@ -292,7 +292,7 @@ internal fun qTest(
 
     qLogStackFrames(
         // "🚀"
-        msg = "${QMyMark.TEST_START} Test Start ${QMyMark.TEST_START}\n$targets".light_blue,
+        msg = "${QMyMark.test_start} Test Start ${QMyMark.test_start}\n$targets".light_blue,
         style = QLogStyle.MSG_AND_STACK,
         frames = listOf(
             qStackFrameEntryMethod { frame ->

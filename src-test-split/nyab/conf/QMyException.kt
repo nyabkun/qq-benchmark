@@ -44,26 +44,21 @@ internal enum class QMyException {
     // CallChain[size=7] = QMyException.ConstructorNotFound <-[Call]- Class<T>.qConstructor() <-[Call]-  ... ce() <-[Call]- qTestMethods() <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
     ConstructorNotFound,
     // CallChain[size=4] = QMyException.TestFail <-[Call]- qTest() <-[Call]- qTestHumanCheck() <-[Call]- main()[Root]
-    TestFail
-    ;
+    TestFail;
 
-    companion object {
-        // Required to implement extended functions.
+    
+}
 
-        // CallChain[size=14] = QMyException.STACK_FRAME_FILTER <-[Call]- QException.QException() <-[Ref]- Q ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
-        val STACK_FRAME_FILTER: (StackWalker.StackFrame) -> Boolean = {
-            !it.className.startsWith("org.gradle") &&
-                !it.className.startsWith("org.testng") &&
-                !it.className.startsWith("worker.org.gradle") &&
-                !it.methodName.endsWith("\$default") && it.fileName != null &&
+// CallChain[size=14] = qSTACK_FRAME_FILTER <-[Call]- QException.QException() <-[Ref]- QE.throwIt()  ... n <-[Propag]- QBlockLoop <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
+internal val qSTACK_FRAME_FILTER: (StackWalker.StackFrame) -> Boolean = {
+    !it.className.startsWith("org.gradle") &&
+            !it.className.startsWith("org.testng") &&
+            !it.className.startsWith("worker.org.gradle") &&
+            !it.methodName.endsWith("\$default") && it.fileName != null &&
 //            && !it.className.startsWith(QException::class.qualifiedName!!)
 //            && it.methodName != "invokeSuspend"
-                it.declaringClass != null
+            it.declaringClass != null
 //            && it.declaringClass.canonicalName != null
 //            && !it.declaringClass.canonicalName.startsWith("kotlin.coroutines.jvm.internal.")
 //            && !it.declaringClass.canonicalName.startsWith("kotlinx.coroutines")
-        }
-
-        
-    }
 }

@@ -47,7 +47,7 @@ internal fun Long.qFormatDuration(unit: QUnit = QUnit.Nano): String {
         QUnit.Milli ->
             Duration.ofMillis(this).qFormat()
         QUnit.Micro ->
-            Duration.ofNanos(this).qFormat()
+            Duration.ofNanos(this * 1000).qFormat()
         QUnit.Nano ->
             Duration.ofNanos(this).qFormat()
         QUnit.Second ->
@@ -77,6 +77,10 @@ internal fun Double.qFormatDuration(): String =
 
 // CallChain[size=6] = Duration.qFormat() <-[Call]- Long.qFormatDuration() <-[Call]- QBlock.toString() <-[Propag]- QBlock <-[Call]- QBenchmark.block() <-[Call]- QBenchmarkTest.cachedRegex()[Root]
 internal fun Duration.qFormat(detail: Boolean = false): String {
+    if(this.isZero) {
+        return "0"
+    }
+
     val du = abs()
 
     val maxUnit: QUnit = du.let {
