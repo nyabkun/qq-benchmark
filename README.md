@@ -4,9 +4,10 @@
 
 **qq-benchmark** is a Kotlin library that can benchmark your code snippets with beautiful console output.
 
+## How to use
 - Just copy and paste Single-File version [QBenchmark.kt](src-single/QBenchmark.kt) into your project.
-- Or you can use Split-File Jar version. See [Maven Dependency Section](#-split-file-jar-version-maven-dependency).
-- Feel free to fork or copy to your own codebase.
+- Or you can use Jar version. See [Maven Dependency Section](#jar-version-maven-dependency).
+- Feel free to fork or copy to your own codebase 😍
 
 ## Example
 
@@ -68,8 +69,8 @@ You can easily copy and paste it into your codebase.
 
 ## Public API
 
-- `qBenchmark()` *Function* [📄 Jump to Code](src-split/nyab/util/QBenchmark.kt#L25-L32)
-- `QBenchmark` *Class* [📄 Jump to Code](src-split/nyab/util/QBenchmark.kt#L34-L83)
+- `qBenchmark()` *Function* [📄 jump to code](src-split/nyab/util/QBenchmark.kt#L25-L32)
+- `QBenchmark` *Class* [📄 jump to code](src-split/nyab/util/QBenchmark.kt#L34-L83)
 
 ## Single-File version Dependency
 
@@ -85,7 +86,7 @@ dependencies {
 }
 ```
 
-## Split-File Jar version Maven Dependency
+## Jar version Maven Dependency
 
 If you prefer a jar library,
 add [jitpack.io](https://jitpack.io/#nyabkun/qq-benchmark) repository to your build settings.
